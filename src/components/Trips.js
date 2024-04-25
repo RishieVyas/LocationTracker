@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, FlatList, StyleSheet } from 'react-native';
+import { View, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
 import { Button, Card, Title, Paragraph, useTheme } from 'react-native-paper';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 const tripsData = [
     { id: '1', vehicle: 'Car', status: 'COMPLETED' },
@@ -58,6 +59,9 @@ const Trips = ({navigation}) => {
 
     return (
         <View style={styles.container}>
+            <TouchableOpacity onPress={() => navigation.navigate('Onboarding')} style={{marginBottom: 5}}>
+                <Icon name="arrow-back-sharp" size={30} color={theme.colors.primary} />
+            </TouchableOpacity>
             <Button icon="plus" mode="contained" onPress={handleNewTrip} style={{backgroundColor: theme.colors.primary, marginVertical: 10}}>
                 New Trip
             </Button>
