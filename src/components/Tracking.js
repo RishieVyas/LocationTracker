@@ -6,10 +6,13 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import BackgroundService from 'react-native-background-actions';
 import Geolocation from 'react-native-geolocation-service';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTraces } from '../utils/useTracesContext';
 
 const sleep = (time) => new Promise((resolve) => setTimeout(() => resolve(), time));
 
 const Tracking = ({ navigation }) => {
+
+    const { traces, loading, error, createTraces, fetchTraces, deleteTraces } = useTraces();
 
     const [tracking, setTracking] = useState(false);
     const [mapView, setMapView] = useState(false);
@@ -49,6 +52,7 @@ const Tracking = ({ navigation }) => {
             const watcher = Geolocation.watchPosition(
                 (position) => {
                     console.log("Tracking in Progress", position);
+                    
                     // Handle location update
                     // E.g., store to local storage or send to your server
                 },

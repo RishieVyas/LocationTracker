@@ -28,6 +28,9 @@ const App = () => {
       Geolocation.getCurrentPosition(
         (position) => {
           setCurrentLocation(position.coords);
+          const locationTimestamp = position.timestamp;
+          const locationDate = new Date(locationTimestamp);
+          console.log("Location fetched at:", locationDate.toString());
           console.log(position);
         },
         (error) => {
