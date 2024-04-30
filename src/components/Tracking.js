@@ -7,17 +7,24 @@ import BackgroundService from 'react-native-background-actions';
 import Geolocation from 'react-native-geolocation-service';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTraces } from '../utils/useTracesContext';
+import { useTrips } from '../utils/useTripsContext';
+import DeviceInfo from 'react-native-device-info';
+import { userDetails } from '../utils/userDetailsContext';
+import { useInterval } from '../utils/timerContext';
 
 const sleep = (time) => new Promise((resolve) => setTimeout(() => resolve(), time));
 
-const Tracking = ({ navigation }) => {
+const Tracking = ({ navigation, route }) => {
 
     const { traces, loading, error, createTraces, fetchTraces, deleteTraces } = useTraces();
+    const { tripId } = route.params;
+    const { mobileNumber, batteryCharging } = userDetails();
+    const { count, startInterval, stopInterval, tripDuration, isActive, setIsActive, timer } = useInterval();
+    const { patchTrip } = useTrips();
+
 
     const [tracking, setTracking] = useState(false);
     const [mapView, setMapView] = useState(false);
-    const [timer, setTimer] = useState(0);
-    const [isActive, setIsActive] = useState(false);
     const theme = useTheme();
 
     const getCurrentDate = () => {
@@ -30,7 +37,20 @@ const Tracking = ({ navigation }) => {
         return `${month.toString().padStart(2, '0')}/${day.toString().padStart(2, '0')}/${year}`;
     };
 
-    const formatTime = () => {
+    const fetchBatteryLevel = async () => {
+        try {
+            const level = await DeviceInfo.getBatteryLevel()
+            const batterypercentage = (level * 100).toFixed(0);
+            console.log('Battery Level:', level);
+            console.log('Battery % :', batterypercentage);
+            return parseInt(batterypercentage);
+            // Returns a number between 0 and 1
+        } catch (error) {
+            console.error("Error fetching battery level: ", error);
+        }
+    };
+
+    const formatTime = (timer) => {
         const getSeconds = `0${(timer % 60)}`.slice(-2);
         const minutes = `${Math.floor(timer / 60)}`;
         const getMinutes = `0${minutes % 60}`.slice(-2);
@@ -41,39 +61,54 @@ const Tracking = ({ navigation }) => {
 
     const locationTrackingTask = async (taskDataArguments) => {
         const { delay } = taskDataArguments;
-        await new Promise((resolve) => {
+        try {
             const locationOptions = {
                 enableHighAccuracy: true,
                 distanceFilter: 0,
-                interval: 5000,
-                fastestInterval: 2000,
+                interval: 5000
             };
-
+    
             const watcher = Geolocation.watchPosition(
-                (position) => {
-                    console.log("Tracking in Progress", position);
-                    
-                    // Handle location update
-                    // E.g., store to local storage or send to your server
+                async (position) => {
+                    try {
+                        // Optionally fetch battery level
+                        const batteryLevel = await fetchBatteryLevel();
+    
+                        // Create trace
+                        
+                            createTraces({
+                                alt: position.coords.altitude,
+                                heading: position.coords.heading,
+                                lat: position.coords.latitude,
+                                lng: position.coords.longitude,
+                                speed: position.coords.speed,
+                                phoneNumber: mobileNumber,
+                                batteryIsCharging: batteryCharging,
+                                batteryLevel: batteryLevel,
+                                timestamp: position.timestamp,
+                                tripId: tripId
+                            });
+
+                    } catch (traceError) {
+                        console.error("Error creating trace:", traceError);
+                    }
                 },
                 (error) => {
-                    console.error(error);
+                    console.error("Geolocation error:", error);
                 },
                 locationOptions
             );
-
-            // Continuously running task
-            const checkBackgroundService = async () => {
-                while (BackgroundService.isRunning()) {
-                    await sleep(delay);
-                }
-                Geolocation.clearWatch(watcher);  // Use clearWatch with the watcher ID
-                resolve();
-            };
-
-            checkBackgroundService();
-        });
+    
+            // Continuously check if the background service is running
+            while (BackgroundService.isRunning()) {
+                await sleep(delay);
+            }
+            Geolocation.clearWatch(watcher);
+        } catch (tripError) {
+            console.error("Error creating trip:", tripError);
+        }
     };
+    
 
     const options = {
         taskName: 'Location Tracking',
@@ -89,19 +124,6 @@ const Tracking = ({ navigation }) => {
             delay: 5000,
         },
     };
-
-    useEffect(() => {
-        let interval = null;
-
-        if (isActive) {
-            interval = setInterval(() => {
-                setTimer((timer) => timer + 1);
-            }, 1000);
-        } else if (!isActive && timer !== 0) {
-            clearInterval(interval);
-        }
-        return () => clearInterval(interval);
-    }, [isActive, timer]);
 
     const startBackGroundTracking = async () => {
         try {
@@ -120,6 +142,7 @@ const Tracking = ({ navigation }) => {
         try {
             await BackgroundService.stop();
             await AsyncStorage.setItem('tracking', 'false'); // Save tracking state
+            patchTrip(tripId,{ status: 'COMPLETED' });
             console.log('Background service stopped successfully');
         } catch (error) {
             console.error('Error stopping the background service:', error);
@@ -136,6 +159,7 @@ const Tracking = ({ navigation }) => {
             }
         };
         loadTrackingStatus();
+        fetchBatteryLevel();
     }, []);
 
 
@@ -151,7 +175,6 @@ const Tracking = ({ navigation }) => {
             stopBackGroundTracking();
         }
         setIsActive(!isActive);
-        console.log('Timer:', timer);
     }
 
     return (
@@ -195,7 +218,7 @@ const Tracking = ({ navigation }) => {
                         <Text style={{ padding: 10, color: mapView ? "#FFF" : "#000", fontWeight: 'bold' }}>Map</Text>
                     </TouchableOpacity>
                 </View>
-                <Text style={{ color: theme.colors.primary, fontSize: 25, fontWeight: 'bold', marginTop: 20 }}>{formatTime()}</Text>
+                <Text style={{ color: theme.colors.primary, fontSize: 25, fontWeight: 'bold', marginTop: 20 }}>{formatTime(timer)}</Text>
                 <TouchableOpacity onPress={handleLocationTracking} style={{ marginVertical: 10 }} >
                     <Icon
                         name={tracking ? "stop-circle" : "power-sharp"}
@@ -226,7 +249,11 @@ const Tracking = ({ navigation }) => {
                             </TouchableOpacity>
                         </View>
                     </>
-                    : <Text style={[styles.heading, { color: "#000" }]}>Tap to start location tracking</Text>
+                    : 
+                    <View style={{justifyContent: 'center', alignItems:'center'}}>
+                        <Text style={[styles.heading, { color: "#000" }]}>Tap to start location tracking</Text>
+                        <Text style={ { color: theme.colors.primary , marginTop: 10, fontSize: 15 }}>Your trip duration was {formatTime(tripDuration)}</Text>
+                    </View>
                 }
             </View>
         </View>

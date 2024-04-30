@@ -4,31 +4,42 @@ import { fetchApi } from './ApiUtils'
 
 const TripsContext = createContext();
 
-export const TracesProvider = ({ children }) => {
+export const useTrips = () => useContext(TripsContext);
+
+export const TripsProvider = ({ children }) => {
     const [trips, setTrips] = useState([]);
+    const [newTrip, setNewTrip] = useState([]);
     const [loadingTrips, setLoadingTrips] = useState(false);
+    const [loadingNewTrips, setLoadingNewTrips] = useState(false);
     const [errorTrips, setErrorTrips] = useState(null);
+    const [deleteTripRes, setDeleteTripRes] = useState(false);
 
     const createTrips = async (payload) => {
         try {
-            const data = await fetchApi('/trips', 'POST', payload);
-            console.log(" Traces Posted ", data);
-            setErrorTrips(null);
+            return await fetchApi('/trips', 'POST', payload);
+            
         } catch (err) {
             setErrorTrips(err.message);
-            setTraces([]);
+            setNewTrip([]);
         }
     };
 
     const fetchTrips = async (deviceId) => {
+        console.log("Fetching Trips called", deviceId);
         setLoadingTrips(true);
         try {
-            const data = await fetchApi(`/trips/${deviceId}`, 'GET');
-            setTrips(data);
-            setErrorTrips(null);
+            if (deviceId == " ") {
+                const data = await fetchApi(`/trips`, 'GET');
+                setTrips(data);
+                return trips;
+            } else {
+                const data = await fetchApi(`/trips?${deviceId}`, 'GET');
+                setTrips(data);
+                return trips;  
+            }
         } catch (err) {
             setErrorTrips(err.message);
-            setTraces([]);
+            setTrips([]);
         } finally {
             setLoadingTrips(false);
         }
@@ -37,9 +48,7 @@ export const TracesProvider = ({ children }) => {
     const deleteTrips = async (tripId) => {
         setLoadingTrips(true);
         try {
-            const data = await fetchApi(`/trips/${tripId}`, 'DELETE');
-            console.log(" Traces Deleted ", data);
-            setErrorTrips(null);
+            return await fetchApi(`/trips/${tripId}`, 'DELETE');
         } catch (err) {
             setErrorTrips(err.message);
         } finally {
@@ -47,16 +56,26 @@ export const TracesProvider = ({ children }) => {
         }
     }
 
+    const patchTrip = (tripId, status) => {
+        try {
+            return fetchApi(`/trips/${tripId}`, 'PATCH', status);
+        } catch (err) {
+            setErrorTrips(err.message);
+        }
+    } 
+
     const value = {
         trips,
         loadingTrips,
         errorTrips,
+        deleteTripRes,
         createTrips,
         fetchTrips,
-        deleteTrips
+        deleteTrips,
+        newTrip,
+        loadingNewTrips,
+        patchTrip
     };
 
     return <TripsContext.Provider value={value}>{children}</TripsContext.Provider>;
 };
-
-export const useTrips = () => useContext(TripsContext);

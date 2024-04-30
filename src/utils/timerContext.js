@@ -11,6 +11,9 @@ export const IntervalProvider = ({ children }) => {
     const [count, setCount] = useState(0);
     const [counterStopped, setCounterStopped] = useState(false)
     const [intervalId, setIntervalId] = useState(null);
+    const [tripDuration, setTripDuration] = useState(0);
+    const [timer, setTimer] = useState(0);
+    const [isActive, setIsActive] = useState(false);
 
     // Function to start the interval
     const startInterval = () => {
@@ -24,12 +27,31 @@ export const IntervalProvider = ({ children }) => {
         }
     };
 
+    useEffect(() => {
+        let interval = null;
+
+        if (isActive) {
+            interval = setInterval(() => {
+                setTimer((timer) => timer + 1);
+            }, 1000);
+            setTripDuration(timer);
+        } else if (!isActive) {
+            clearInterval(interval);
+            setTimer(0);
+        }
+        return () => clearInterval(interval);
+    }, [isActive, timer]);
+
     // Function to stop the interval
     const stopInterval = () => {
         if (intervalId) {
             clearInterval(intervalId);
             setCounterStopped(true)
             setIntervalId(null); // Clear the interval ID
+            setTripDuration(count);
+            if (tripDuration > 0) {
+                setCount(0);
+            }
         }
     };
 
@@ -42,8 +64,10 @@ export const IntervalProvider = ({ children }) => {
         };
     }, [intervalId]);
 
+
+
     return (
-        <IntervalContext.Provider value={{ count, startInterval, stopInterval, counterStopped, setCount }}>
+        <IntervalContext.Provider value={{ count, startInterval, stopInterval, counterStopped, setCount, tripDuration, isActive, setIsActive, timer }}>
             {children}
         </IntervalContext.Provider>
     );

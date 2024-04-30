@@ -10,6 +10,7 @@ export const TracesProvider = ({ children }) => {
     const [error, setError] = useState(null);
 
     const createTraces = async (payload) => {
+        console.log("Traces Payload", payload);
         try {
             const data = await fetchApi('/traces', 'POST', payload);
             console.log(" Traces Posted ", data);

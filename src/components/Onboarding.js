@@ -4,16 +4,25 @@ import { View, StyleSheet, Text, Image } from 'react-native';
 import { TextInput, Button, useTheme } from 'react-native-paper';
 import { useValidatedInput, formatPhoneNumber, cleanPhoneNumber } from '../utils/CommonFunctions';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { userDetails } from '../utils/userDetailsContext';
 
 const Onboarding = ({ navigation }) => {
-  const theme = useTheme(); // This hook uses the theme colors from the PaperProvider
+  const theme = useTheme();
 
-  // State hooks for form inputs
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [mobileNumber, setMobileNumber] = useState('');
-  const [vehicle, setVehicle] = useState('');
-  const [emergencyContact, setEmergencyContact] = useState('');
+  const {
+    firstName,
+    setFirstName,
+    lastName,
+    setLastName,
+    mobileNumber,
+    setMobileNumber,
+    vehicle,
+    setVehicle,
+    emergencyContact,
+    setEmergencyContact,
+  } = userDetails();
+
+  const [displayMobileNumber, setDisplayMobileNumber] = useState('');
 
   const saveUserDetails = async (details) => {
     try {
@@ -24,33 +33,6 @@ const Onboarding = ({ navigation }) => {
       console.error('Failed to save user details:', e);
     }
   };
-
-  // Function to load user details
-  const loadUserDetails = async () => {
-    try {
-      const jsonValue = await AsyncStorage.getItem('userDetails');
-      console.log('User details:', jsonValue);
-      return jsonValue != null ? JSON.parse(jsonValue) : null;
-    } catch (e) {
-      // error reading value
-      console.error('Failed to load user details:', e);
-      return null;
-    }
-  };
-
-  useEffect(() => {
-    const fetchUserDetails = async () => {
-      const details = await loadUserDetails();
-      if (details) {
-        setFirstName(details.firstName);
-        setLastName(details.lastName);
-        setMobileNumber(details.mobileNumber);
-        setVehicle(details.vehicle);
-        setEmergencyContact(details.emergencyContact);
-      }
-    };
-    fetchUserDetails();
-  }, []);
 
   // Function to handle the form submission
   const handleSubmit = () => {
@@ -63,9 +45,15 @@ const Onboarding = ({ navigation }) => {
     else {
       navigation.navigate('Trips');
       AsyncStorage.setItem('onboarded', 'true');
-      saveUserDetails({ firstName, lastName, mobileNumber, vehicle, emergencyContact });
+      saveUserDetails({ firstName, lastName, mobileNumber, vehicle, emergencyContact, displayMobileNumber });
     }
   };
+
+  const handlePhoneNumber = (number) => {
+    const cleanNumber = cleanPhoneNumber(number);
+    setDisplayMobileNumber(formatPhoneNumber(number));
+    setMobileNumber(cleanNumber);
+  }
 
   return (
     <View style={styles.container}>
@@ -109,8 +97,8 @@ const Onboarding = ({ navigation }) => {
       />
       <TextInput
         label="Mobile Number"
-        value={formatPhoneNumber(mobileNumber)}
-        onChangeText={setMobileNumber}
+        value={displayMobileNumber}
+        onChangeText={handlePhoneNumber}
         mode="outlined"
         outlineStyle={{ borderRadius: 20, borderColor: theme.colors.primary, borderWidth: 1 }}
         contentStyle={{ color: '#000' }}

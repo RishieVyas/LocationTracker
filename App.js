@@ -7,6 +7,9 @@ import { DefaultTheme } from 'react-native-paper';
 import { IntervalProvider } from './src/utils/timerContext';
 import { PermissionsAndroid, Platform } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
+import { TripsProvider } from './src/utils/useTripsContext';
+import { TracesProvider } from './src/utils/useTracesContext';
+import { UserDetailProvider } from './src/utils/userDetailsContext';
 
 const App = () => {
 
@@ -38,7 +41,7 @@ const App = () => {
           console.log(error.code, error.message);
         },
         { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
-    );
+      );
     } catch (error) {
       console.warn(error);
     }
@@ -112,14 +115,20 @@ const App = () => {
       await requestLocationPermission();
     }
     requestPermissions();
-  }, []);  
+  }, []);
 
   return (
     <PaperProvider theme={theme}>
       <IntervalProvider>
-        <NavigationContainer>
-          <Navigation />
-        </NavigationContainer>
+        <UserDetailProvider>
+          <TripsProvider>
+            <TracesProvider>
+              <NavigationContainer>
+                <Navigation />
+              </NavigationContainer>
+            </TracesProvider>
+          </TripsProvider>
+        </UserDetailProvider>
       </IntervalProvider>
     </PaperProvider>
   );
