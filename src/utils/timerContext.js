@@ -7,7 +7,7 @@ const IntervalContext = createContext();
 export const useInterval = () => useContext(IntervalContext);
 
 // Provider component
-export const IntervalProvider = ({ children }) => {
+export const IntervalProvider = ({ children, currentLocation, setCurrentLocation }) => {
     const [count, setCount] = useState(0);
     const [counterStopped, setCounterStopped] = useState(false)
     const [intervalId, setIntervalId] = useState(null);
@@ -67,7 +67,7 @@ export const IntervalProvider = ({ children }) => {
 
 
     return (
-        <IntervalContext.Provider value={{ count, startInterval, stopInterval, counterStopped, setCount, tripDuration, isActive, setIsActive, timer }}>
+        <IntervalContext.Provider value={{ count, startInterval, stopInterval, counterStopped, setCount, tripDuration, isActive, setIsActive, timer, currentLocation, setCurrentLocation }}>
             {children}
         </IntervalContext.Provider>
     );

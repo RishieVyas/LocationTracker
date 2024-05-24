@@ -69,8 +69,12 @@ const Trips = ({navigation}) => {
     };
 
     const handleOpenTrip = (id) => {
-        navigation.navigate('Tracking', {tripId: id});
-        console.log('Open Trip:', id);
+        if (id) {
+            navigation.navigate('Tracking', { tripId: id });
+            console.log('Open Trip:', id);
+        } else {
+            ToastAndroid.show("Invalid trip ID", ToastAndroid.SHORT);
+        }
     };
 
     const handleDeleteTrip = (id) => {

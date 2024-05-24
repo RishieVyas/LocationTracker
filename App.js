@@ -10,10 +10,11 @@ import Geolocation from 'react-native-geolocation-service';
 import { TripsProvider } from './src/utils/useTripsContext';
 import { TracesProvider } from './src/utils/useTracesContext';
 import { UserDetailProvider } from './src/utils/userDetailsContext';
+import { AttachmentsProvider } from './src/utils/useAttachmentsContext';
 
 const App = () => {
 
-  const [currentLocation, setCurrentLocation] = useState(null);
+  const [currentLocation, setCurrentLocation] = useState({ latitude: null, longitude: null });
 
   const theme = {
     ...DefaultTheme,
@@ -30,7 +31,7 @@ const App = () => {
     try {
       Geolocation.getCurrentPosition(
         (position) => {
-          setCurrentLocation(position.coords);
+          setCurrentLocation({ latitude: position.coords.latitude, longitude: position.coords.longitude });
           const locationTimestamp = position.timestamp;
           const locationDate = new Date(locationTimestamp);
           console.log("Location fetched at:", locationDate.toString());
@@ -119,15 +120,17 @@ const App = () => {
 
   return (
     <PaperProvider theme={theme}>
-      <IntervalProvider>
+      <IntervalProvider currentLocation={currentLocation} setCurrentLocation={setCurrentLocation}>
         <UserDetailProvider>
-          <TripsProvider>
-            <TracesProvider>
-              <NavigationContainer>
-                <Navigation />
-              </NavigationContainer>
-            </TracesProvider>
-          </TripsProvider>
+          <AttachmentsProvider>
+            <TripsProvider>
+              <TracesProvider>
+                <NavigationContainer>
+                  <Navigation />
+                </NavigationContainer>
+              </TracesProvider>
+            </TripsProvider>
+          </AttachmentsProvider>
         </UserDetailProvider>
       </IntervalProvider>
     </PaperProvider>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useTheme } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -11,6 +11,8 @@ import { useTrips } from '../utils/useTripsContext';
 import DeviceInfo from 'react-native-device-info';
 import { userDetails } from '../utils/userDetailsContext';
 import { useInterval } from '../utils/timerContext';
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import Map from './Map';
 
 const sleep = (time) => new Promise((resolve) => setTimeout(() => resolve(), time));
 
@@ -19,12 +21,14 @@ const Tracking = ({ navigation, route }) => {
     const { traces, loading, error, createTraces, fetchTraces, deleteTraces } = useTraces();
     const { tripId } = route.params;
     const { mobileNumber, batteryCharging } = userDetails();
-    const { count, startInterval, stopInterval, tripDuration, isActive, setIsActive, timer } = useInterval();
+    const { count, startInterval, stopInterval, tripDuration, isActive, setIsActive, timer, currentLocation, setCurrentLocation } = useInterval();
     const { patchTrip } = useTrips();
 
 
     const [tracking, setTracking] = useState(false);
     const [mapView, setMapView] = useState(false);
+    const [pathCoordinates, setPathCoordinates] = useState([]);
+    const [traceid, setTraceid] = useState("");
     const theme = useTheme();
 
     const getCurrentDate = () => {
@@ -36,6 +40,13 @@ const Tracking = ({ navigation, route }) => {
         // Format the date into MM/DD/YYYY
         return `${month.toString().padStart(2, '0')}/${day.toString().padStart(2, '0')}/${year}`;
     };
+
+    useEffect(() => {
+        if (!tripId) {
+            Alert.alert("Error", "Trip ID is not defined. Returning to Trips screen.");
+            navigation.navigate('Trips');
+        }
+    }, [tripId, navigation]);
 
     const fetchBatteryLevel = async () => {
         try {
@@ -73,21 +84,33 @@ const Tracking = ({ navigation, route }) => {
                     try {
                         // Optionally fetch battery level
                         const batteryLevel = await fetchBatteryLevel();
-    
+
                         // Create trace
-                        
-                            createTraces({
-                                alt: position.coords.altitude,
-                                heading: position.coords.heading,
-                                lat: position.coords.latitude,
-                                lng: position.coords.longitude,
-                                speed: position.coords.speed,
-                                phoneNumber: mobileNumber,
-                                batteryIsCharging: batteryCharging,
-                                batteryLevel: batteryLevel,
-                                timestamp: position.timestamp,
-                                tripId: tripId
-                            });
+
+                        const res = createTraces({
+                            alt: position.coords.altitude,
+                            heading: position.coords.heading,
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude,
+                            speed: position.coords.speed,
+                            phoneNumber: mobileNumber,
+                            batteryIsCharging: batteryCharging,
+                            batteryLevel: batteryLevel,
+                            timestamp: position.timestamp,
+                            tripId: tripId
+                        });
+
+                        setPathCoordinates((prevCoords) => [
+                            ...prevCoords,
+                            {
+                                latitude: position.coords.latitude,
+                                longitude: position.coords.longitude
+                            },
+                        ]);
+
+                        setCurrentLocation({ latitude: position.coords.latitude, longitude: position.coords.longitude });
+
+                        setTraceid(res.id)
 
                     } catch (traceError) {
                         console.error("Error creating trace:", traceError);
@@ -98,7 +121,7 @@ const Tracking = ({ navigation, route }) => {
                 },
                 locationOptions
             );
-    
+
             // Continuously check if the background service is running
             while (BackgroundService.isRunning()) {
                 await sleep(delay);
@@ -177,6 +200,10 @@ const Tracking = ({ navigation, route }) => {
         setIsActive(!isActive);
     }
 
+    const onCameraPress = () => {
+        navigation.navigate('CameraScreen', {traceid : traceid});
+    }
+
     return (
         <View style={styles.container}>
             <TouchableOpacity onPress={() => navigation.navigate('Trips')} style={{ margin: 10 }}>
@@ -218,44 +245,48 @@ const Tracking = ({ navigation, route }) => {
                         <Text style={{ padding: 10, color: mapView ? "#FFF" : "#000", fontWeight: 'bold' }}>Map</Text>
                     </TouchableOpacity>
                 </View>
-                <Text style={{ color: theme.colors.primary, fontSize: 25, fontWeight: 'bold', marginTop: 20 }}>{formatTime(timer)}</Text>
-                <TouchableOpacity onPress={handleLocationTracking} style={{ marginVertical: 10 }} >
-                    <Icon
-                        name={tracking ? "stop-circle" : "power-sharp"}
-                        size={250}
-                        color={tracking ? "#ef476f" : "#0000FF"}
-                        style={{
-                            textShadowColor: tracking ? "#FF10F0" : "#00ffff",
-                            textShadowRadius: 10,
-                        }}
-                    />
-                </TouchableOpacity>
-                {tracking ?
+                {!mapView ?
                     <>
-                        <Text style={{ color: '#ef476f', fontSize: 20, fontWeight: 'bold' }}>Location Tracking in Progress</Text>
+                        <Text style={{ color: theme.colors.primary, fontSize: 25, fontWeight: 'bold', marginTop: 20 }}>{formatTime(timer)}</Text>
+                        <TouchableOpacity onPress={handleLocationTracking} style={{ marginVertical: 10 }} >
+                            <Icon
+                                name={tracking ? "stop-circle" : "power-sharp"}
+                                size={250}
+                                color={tracking ? "#ef476f" : "#0000FF"}
+                                style={{
+                                    textShadowColor: tracking ? "#FF10F0" : "#00ffff",
+                                    textShadowRadius: 10,
+                                }}
+                            />
+                        </TouchableOpacity>
+                        {!tracking ?
+                            <>
+                                <Text style={{ color: '#ef476f', fontSize: 20, fontWeight: 'bold' }}>Location Tracking in Progress</Text>
 
-                        <View style={{ flexDirection: 'row', marginTop: 30, borderWidth: 1, borderColor: 'lightgrey', borderRadius: 30 }}>
-                            <TouchableOpacity style={{ marginHorizontal: 20 }}>
-                                <Icon name="camera" size={50} color="#219ebc" />
-                            </TouchableOpacity>
-                            <TouchableOpacity style={{ marginHorizontal: 20 }}>
-                                <Icon name="videocam" size={50} color="#0077b6" />
-                            </TouchableOpacity>
-                            <TouchableOpacity style={{ marginHorizontal: 20, marginTop: 5 }}>
-                                <MaterialIcons name="message" size={40} color="#db3a34" />
-                            </TouchableOpacity>
-                            <TouchableOpacity style={{ marginHorizontal: 20 }}>
-                                <MaterialIcons name="sos" size={50} color="#FFA500" />
-                            </TouchableOpacity>
-                        </View>
-                    </>
-                    : 
-                    <View style={{justifyContent: 'center', alignItems:'center'}}>
-                        <Text style={[styles.heading, { color: "#000" }]}>Tap to start location tracking</Text>
-                        <Text style={ { color: theme.colors.primary , marginTop: 10, fontSize: 15 }}>Your trip duration was {formatTime(tripDuration)}</Text>
-                    </View>
-                }
+                                <View style={{ flexDirection: 'row', marginTop: 30, borderWidth: 1, borderColor: 'lightgrey', borderRadius: 30 }}>
+                                    <TouchableOpacity onPress={onCameraPress} style={{ marginHorizontal: 20 }}>
+                                        <Icon name="camera" size={50} color="#219ebc" />
+                                    </TouchableOpacity>
+                                    <TouchableOpacity onPress={onCameraPress} style={{ marginHorizontal: 20 }}>
+                                        <Icon name="videocam" size={50} color="#0077b6" />
+                                    </TouchableOpacity>
+                                    <TouchableOpacity style={{ marginHorizontal: 20, marginTop: 5 }}>
+                                        <MaterialIcons name="message" size={40} color="#db3a34" />
+                                    </TouchableOpacity>
+                                    <TouchableOpacity style={{ marginHorizontal: 20 }}>
+                                        <MaterialIcons name="sos" size={50} color="#FFA500" />
+                                    </TouchableOpacity>
+                                </View>
+                            </>
+                            :
+                            <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+                                <Text style={[styles.heading, { color: "#000" }]}>Tap to start location tracking</Text>
+                                <Text style={{ color: theme.colors.primary, marginTop: 10, fontSize: 15 }}>Your trip duration was {formatTime(tripDuration)}</Text>
+                            </View>
+                        }
+                    </> : null}
             </View>
+            {mapView && currentLocation ? <Map currentLocation={currentLocation} pathCoordinates={pathCoordinates} tracking={tracking}/> : null}
         </View>
     );
 };
