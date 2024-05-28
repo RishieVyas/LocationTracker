@@ -7,19 +7,6 @@ import { userDetails } from '../utils/userDetailsContext';
 import DeviceInfo from 'react-native-device-info';
 import { useIsFocused } from '@react-navigation/native';
 
-const tripsData = [
-    { id: '1', vehicle: 'Car', status: 'COMPLETED' },
-    { id: '2', vehicle: 'Truck', status: 'ONGOING' },
-    { id: '3', vehicle: 'Cyber Truck', status: 'INDISGRESS' },
-    { id: '4', vehicle: 'Car', status: 'COMPLETED' },
-    { id: '5', vehicle: 'Truck', status: 'ONGOING' },
-    { id: '6', vehicle: 'Cyber Truck', status: 'INDISGRESS' },
-    { id: '7', vehicle: 'Car', status: 'COMPLETED' },
-    { id: '8', vehicle: 'Truck', status: 'ONGOING' },
-    { id: '9', vehicle: 'Cyber Truck', status: 'INDISGRESS' }
-    // Add more trips here
-];
-
 const Trips = ({navigation}) => {
 
     const theme = useTheme();

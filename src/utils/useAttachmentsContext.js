@@ -1,25 +1,61 @@
 import React, { createContext, useState, useContext, useMemo } from 'react';
 import { fetchApi } from './ApiUtils';
+import { Alert, Platform } from 'react-native';
 
 const AttachmentsContext = createContext();
 
 export const useAttachments = () => useContext(AttachmentsContext);
 
+const token = "g30rd4n15c00l!";
+const API_BASE_URL = "https://tracker.ritis.org/api/v1";
+
 export const AttachmentsProvider = ({ children }) => {
     const [attachments, setAttachments] = useState([]);
     const [loadingAttachments, setLoadingAttachments] = useState(false);
     const [errorAttachments, setErrorAttachments] = useState(null);
+    
+    const fetchAttachmentAPI = async (endpoint, method, body) => {
 
-    const createAttachment = async (deviceTraceId, file) => {
-        const formData = new FormData();
-        formData.append('deviceTraceId', deviceTraceId);
-        formData.append('file', file);
+        const headers = {
+            'Content-Type': 'multipart/form-data',
+            'Authorization': `Bearer ${token}`,
+        };
+    
+        const config = {
+            method: method,
+            headers: headers,
+            body: method == "GET" && method == "DELETE" ? null : body,
+        };
 
         try {
-            setLoadingAttachments(true);
-            const newAttachment = await fetchApi('/attachments', 'POST', formData, {
-                'Content-Type': 'multipart/form-data'
-            });
+            console.log("API URL: ", `${API_BASE_URL}${endpoint}`);
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+      
+            const result = await response.json();
+            console.log("result of the API", result);
+            if (response.ok) {
+              Alert.alert('Success', 'Media uploaded successfully');
+            } else {
+              Alert.alert('Error', result.message || 'Failed to upload media');
+            }
+          } catch (error) {
+            console.error('Upload failed:', error);
+            Alert.alert('Error', 'Failed to upload media');
+          }
+        }
+
+    const createAttachment = async (traceId, uri) => {
+        const data = new FormData;
+        data.append('deviceTraceId', traceId) ;
+        data.append('attachment', {
+            name: "photo.jpg",
+            type: "image/jpeg",
+            uri: Platform.OS === 'ios' ? uri.replace('file://', '') : uri
+        });
+        try {
+            setLoadingAttachments(true); 
+            console.log("attachment payload", data);
+            const newAttachment = await fetchAttachmentAPI('/attachments', 'POST', data);
             setAttachments((prev) => [...prev, newAttachment]);
         } catch (err) {
             setErrorAttachments(err.message);

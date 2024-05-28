@@ -8,16 +8,18 @@ export const TracesProvider = ({ children }) => {
     const [traces, setTraces] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [postTraces, setPostTraces] = useState([])
 
     const createTraces = async (payload) => {
         console.log("Traces Payload", payload);
         try {
             const data = await fetchApi('/traces', 'POST', payload);
             console.log(" Traces Posted ", data);
+            setPostTraces(data)
             setError(null);
         } catch (err) {
             setError(err.message);
-            setTraces([]);
+            setPostTraces([]);
         }
     };
 
@@ -50,6 +52,7 @@ export const TracesProvider = ({ children }) => {
 
     const value = {
         traces,
+        postTraces,
         loading,
         error,
         createTraces,

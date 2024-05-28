@@ -18,7 +18,7 @@ const sleep = (time) => new Promise((resolve) => setTimeout(() => resolve(), tim
 
 const Tracking = ({ navigation, route }) => {
 
-    const { traces, loading, error, createTraces, fetchTraces, deleteTraces } = useTraces();
+    const { createTraces, postTraces } = useTraces();
     const { tripId } = route.params;
     const { mobileNumber, batteryCharging } = userDetails();
     const { count, startInterval, stopInterval, tripDuration, isActive, setIsActive, timer, currentLocation, setCurrentLocation } = useInterval();
@@ -30,6 +30,7 @@ const Tracking = ({ navigation, route }) => {
     const [pathCoordinates, setPathCoordinates] = useState([]);
     const [traceid, setTraceid] = useState("");
     const theme = useTheme();
+    // console.log("trace id on tracking file", traceid);
 
     const getCurrentDate = () => {
         const date = new Date(); // gets the current date
@@ -52,7 +53,6 @@ const Tracking = ({ navigation, route }) => {
         try {
             const level = await DeviceInfo.getBatteryLevel()
             const batterypercentage = (level * 100).toFixed(0);
-            console.log('Battery Level:', level);
             console.log('Battery % :', batterypercentage);
             return parseInt(batterypercentage);
             // Returns a number between 0 and 1
@@ -100,6 +100,7 @@ const Tracking = ({ navigation, route }) => {
                             tripId: tripId
                         });
 
+                        console.log(" trace response ", postTraces);
                         setPathCoordinates((prevCoords) => [
                             ...prevCoords,
                             {
@@ -109,8 +110,8 @@ const Tracking = ({ navigation, route }) => {
                         ]);
 
                         setCurrentLocation({ latitude: position.coords.latitude, longitude: position.coords.longitude });
-
-                        setTraceid(res.id)
+                        
+                        setTraceid(postTraces.id)
 
                     } catch (traceError) {
                         console.error("Error creating trace:", traceError);
@@ -187,7 +188,6 @@ const Tracking = ({ navigation, route }) => {
 
 
     const handleLocationTracking = () => {
-        console.log('Location Tracking Started');
         setTracking(!tracking);
         if (!tracking) {
             console.log('Location Tracking Started');
@@ -201,6 +201,7 @@ const Tracking = ({ navigation, route }) => {
     }
 
     const onCameraPress = () => {
+        console.log(" trace id on camera press", traceid);
         navigation.navigate('CameraScreen', {traceid : traceid});
     }
 
@@ -259,7 +260,7 @@ const Tracking = ({ navigation, route }) => {
                                 }}
                             />
                         </TouchableOpacity>
-                        {!tracking ?
+                        {tracking ?
                             <>
                                 <Text style={{ color: '#ef476f', fontSize: 20, fontWeight: 'bold' }}>Location Tracking in Progress</Text>
 
