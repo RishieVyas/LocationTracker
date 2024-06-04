@@ -269,7 +269,7 @@ const Tracking = ({ navigation, route }) => {
                                 }}
                             />
                         </TouchableOpacity>
-                        {!tracking ?
+                        {tracking ?
                             <>
                                 <Text style={{ color: '#ef476f', fontSize: 20, fontWeight: 'bold' }}>Location Tracking in Progress</Text>
 
