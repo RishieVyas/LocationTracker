@@ -17,6 +17,7 @@ export const TracesProvider = ({ children }) => {
             console.log(" Traces Posted ", data);
             setPostTraces(data)
             setError(null);
+            return data;
         } catch (err) {
             setError(err.message);
             setPostTraces([]);

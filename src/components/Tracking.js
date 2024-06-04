@@ -87,7 +87,7 @@ const Tracking = ({ navigation, route }) => {
 
                         // Create trace
 
-                        const res = createTraces({
+                        const res = await createTraces({
                             alt: position.coords.altitude,
                             heading: position.coords.heading,
                             lat: position.coords.latitude,
@@ -100,7 +100,7 @@ const Tracking = ({ navigation, route }) => {
                             tripId: tripId
                         });
 
-                        console.log(" trace response ", postTraces);
+                        console.log(" trace response ", res);
                         setPathCoordinates((prevCoords) => [
                             ...prevCoords,
                             {
@@ -111,7 +111,7 @@ const Tracking = ({ navigation, route }) => {
 
                         setCurrentLocation({ latitude: position.coords.latitude, longitude: position.coords.longitude });
                         
-                        setTraceid(postTraces.id)
+                        setTraceid(res.id)
 
                     } catch (traceError) {
                         console.error("Error creating trace:", traceError);
@@ -205,6 +205,15 @@ const Tracking = ({ navigation, route }) => {
         navigation.navigate('CameraScreen', {traceid : traceid});
     }
 
+    const onVideoCameraPress = () => {
+        console.log(" trace id on camera press", traceid);
+        navigation.navigate('VideoCameraScreen', {traceid : traceid, tripId: tripId });
+    }
+
+    const onMessagePress = () => {
+        console.log("on message press");
+    }
+
     return (
         <View style={styles.container}>
             <TouchableOpacity onPress={() => navigation.navigate('Trips')} style={{ margin: 10 }}>
@@ -260,18 +269,18 @@ const Tracking = ({ navigation, route }) => {
                                 }}
                             />
                         </TouchableOpacity>
-                        {tracking ?
+                        {!tracking ?
                             <>
                                 <Text style={{ color: '#ef476f', fontSize: 20, fontWeight: 'bold' }}>Location Tracking in Progress</Text>
 
                                 <View style={{ flexDirection: 'row', marginTop: 30, borderWidth: 1, borderColor: 'lightgrey', borderRadius: 30 }}>
-                                    <TouchableOpacity onPress={onCameraPress} style={{ marginHorizontal: 20 }}>
+                                    <TouchableOpacity onPress={() => onCameraPress()} style={{ marginHorizontal: 20 }}>
                                         <Icon name="camera" size={50} color="#219ebc" />
                                     </TouchableOpacity>
-                                    <TouchableOpacity onPress={onCameraPress} style={{ marginHorizontal: 20 }}>
+                                    <TouchableOpacity onPress={() => onVideoCameraPress()} style={{ marginHorizontal: 20 }}>
                                         <Icon name="videocam" size={50} color="#0077b6" />
                                     </TouchableOpacity>
-                                    <TouchableOpacity style={{ marginHorizontal: 20, marginTop: 5 }}>
+                                    <TouchableOpacity onPress={onMessagePress} style={{ marginHorizontal: 20, marginTop: 5 }}>
                                         <MaterialIcons name="message" size={40} color="#db3a34" />
                                     </TouchableOpacity>
                                     <TouchableOpacity style={{ marginHorizontal: 20 }}>

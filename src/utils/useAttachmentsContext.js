@@ -13,6 +13,7 @@ export const AttachmentsProvider = ({ children }) => {
     const [attachments, setAttachments] = useState([]);
     const [loadingAttachments, setLoadingAttachments] = useState(false);
     const [errorAttachments, setErrorAttachments] = useState(null);
+    const [mediaType, setMediaType] = useState(null);
     
     const fetchAttachmentAPI = async (endpoint, method, body) => {
 
@@ -48,13 +49,14 @@ export const AttachmentsProvider = ({ children }) => {
         const data = new FormData;
         data.append('deviceTraceId', traceId) ;
         data.append('attachment', {
-            name: "photo.jpg",
-            type: "image/jpeg",
+            name: mediaType === 'photo' ? 'photo.jpg' : 'video.mov',
+            type: mediaType === 'photo' ? 'image/jpeg' : 'video/mov',
             uri: Platform.OS === 'ios' ? uri.replace('file://', '') : uri
         });
         try {
             setLoadingAttachments(true); 
             console.log("attachment payload", data);
+            console.log("attachment object", data._parts[1]);
             const newAttachment = await fetchAttachmentAPI('/attachments', 'POST', data);
             setAttachments((prev) => [...prev, newAttachment]);
         } catch (err) {
@@ -112,6 +114,7 @@ export const AttachmentsProvider = ({ children }) => {
         deleteAttachment,
         getAttachmentById,
         getAttachments,
+        setMediaType
     }
 
     return <AttachmentsContext.Provider value={value}>{children}</AttachmentsContext.Provider>;

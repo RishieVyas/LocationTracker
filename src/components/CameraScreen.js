@@ -8,10 +8,9 @@ import Icon from 'react-native-vector-icons/Ionicons';
 
 const CameraScreen = ({ route, navigation }) => {
     const [mediaUri, setMediaUri] = useState(null);
-    const [mediaType, setMediaType] = useState(null);
     const [cameraPermission, setCameraPermission] = useState(false);
     const [microphonePermission, setMicrophonePermission] = useState(false);
-    const { createAttachment } = useAttachments();
+    const { createAttachment, setMediaType } = useAttachments();
     const {traceid} = route.params
     //   const device = useCameraDevices().back;
     const device = useCameraDevice('back', {
@@ -79,7 +78,7 @@ const CameraScreen = ({ route, navigation }) => {
                 </>
                 : null}
 
-            {mediaUri && mediaType === 'photo' && (
+            {mediaUri &&  (
                 <View style={{margin: 5, flex: 1}}>
                     <TouchableOpacity onPress={() => navigation.goBack()} style={{ margin: 10 }}>
                 <Icon name="arrow-back-sharp" size={30} color={theme.colors.primary} />
@@ -87,7 +86,6 @@ const CameraScreen = ({ route, navigation }) => {
                 <Image source={{ uri: mediaUri }} style={styles.preview} />
                 </View>
             )}
-            {mediaUri && mediaType === 'video' && <Text>Video recorded</Text>}
             {mediaUri && (
                 <Button
                     mode="contained"

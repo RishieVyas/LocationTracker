@@ -6,6 +6,8 @@ import Tracking from '../components/Tracking';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ActivityIndicator, View } from 'react-native';
 import CameraScreen from '../components/CameraScreen';
+import PastTrips from '../components/PastTrips';
+import VideoCameraScreen from '../components/VideoCameraScreen';
 
 const Stack = createStackNavigator();
 
@@ -63,6 +65,16 @@ const Navigation = () => {
             <Stack.Screen
                 name="CameraScreen"
                 component={CameraScreen}
+                options={{ title: '', headerShown: false}}
+            />
+            <Stack.Screen
+                name="VideoCameraScreen"
+                component={VideoCameraScreen}
+                options={{ title: '', headerShown: false}}
+            />
+            <Stack.Screen
+                name="PastTrips"
+                component={PastTrips}
                 options={{ title: '', headerShown: false}}
             />
         </Stack.Navigator>
