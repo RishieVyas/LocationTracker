@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE, Polyline } from 'react-native-maps';
 import { useInterval } from '../utils/timerContext';
+import { useAttachments } from '../utils/useAttachmentsContext';
 
 const Map = ({ currentLocation, pathCoordinates, tracking }) => {
     // const {currentLocation} = useInterval
@@ -25,6 +26,15 @@ const Map = ({ currentLocation, pathCoordinates, tracking }) => {
                         }}
                         pinColor='red'
                     />
+                    {pictureCoords ?
+                        <Marker
+                            coordinate={{
+                                latitude: pictureCoords.latitude,
+                                longitude: pictureCoords.longitude
+                            }}
+                            pinColor='indigo'
+                        /> : null
+                    }
                     <Polyline
                         coordinates={pathCoordinates}
                         strokeColor="red" // border color

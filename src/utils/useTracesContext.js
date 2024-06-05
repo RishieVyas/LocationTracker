@@ -8,7 +8,7 @@ export const TracesProvider = ({ children }) => {
     const [traces, setTraces] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [postTraces, setPostTraces] = useState([])
+    const [postTraces, setPostTraces] = useState({})
 
     const createTraces = async (payload) => {
         console.log("Traces Payload", payload);
@@ -58,7 +58,8 @@ export const TracesProvider = ({ children }) => {
         error,
         createTraces,
         fetchTraces,
-        deleteTraces
+        deleteTraces,
+        setPostTraces
     };
 
     return <TracesContext.Provider value={value}>{children}</TracesContext.Provider>;

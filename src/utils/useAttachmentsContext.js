@@ -14,6 +14,10 @@ export const AttachmentsProvider = ({ children }) => {
     const [loadingAttachments, setLoadingAttachments] = useState(false);
     const [errorAttachments, setErrorAttachments] = useState(null);
     const [mediaType, setMediaType] = useState(null);
+    const [pictureCoords, setPictureCoords] = useState({
+        latitude: null,
+        longitude: null
+    })
     
     const fetchAttachmentAPI = async (endpoint, method, body) => {
 
@@ -110,11 +114,13 @@ export const AttachmentsProvider = ({ children }) => {
         attachments,
         loadingAttachments,
         errorAttachments,
+        pictureCoords,
         createAttachment,
         deleteAttachment,
         getAttachmentById,
         getAttachments,
-        setMediaType
+        setMediaType,
+        setPictureCoords
     }
 
     return <AttachmentsContext.Provider value={value}>{children}</AttachmentsContext.Provider>;

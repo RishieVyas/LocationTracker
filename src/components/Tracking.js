@@ -11,26 +11,44 @@ import { useTrips } from '../utils/useTripsContext';
 import DeviceInfo from 'react-native-device-info';
 import { userDetails } from '../utils/userDetailsContext';
 import { useInterval } from '../utils/timerContext';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import Map from './Map';
+import MessageModal from './MessageModal';
+import { useComments } from '../utils/useCommentsContext';
 
 const sleep = (time) => new Promise((resolve) => setTimeout(() => resolve(), time));
 
 const Tracking = ({ navigation, route }) => {
 
-    const { createTraces, postTraces } = useTraces();
+    const { createTraces, postTraces, setPostTraces } = useTraces();
     const { tripId } = route.params;
     const { mobileNumber, batteryCharging } = userDetails();
-    const { count, startInterval, stopInterval, tripDuration, isActive, setIsActive, timer, currentLocation, setCurrentLocation } = useInterval();
+    const { tripDuration, isActive, setIsActive, timer, currentLocation, setCurrentLocation } = useInterval();
     const { patchTrip } = useTrips();
-
+    const {createComments} = useComments();
 
     const [tracking, setTracking] = useState(false);
     const [mapView, setMapView] = useState(false);
     const [pathCoordinates, setPathCoordinates] = useState([]);
     const [traceid, setTraceid] = useState("");
     const theme = useTheme();
-    // console.log("trace id on tracking file", traceid);
+
+    const [modalVisible, setModalVisible] = useState(false);
+
+    const showModal = () => {
+        setModalVisible(true);
+    };
+
+    const hideModal = () => {
+        setModalVisible(false);
+    };
+
+    const handleSubmit = async (text) => {
+        // Call your API here with the text input value
+        const commentRes = await createComments({
+            body : text,
+            deviceTraceId : traceid
+        })
+    };
 
     const getCurrentDate = () => {
         const date = new Date(); // gets the current date
@@ -112,6 +130,7 @@ const Tracking = ({ navigation, route }) => {
                         setCurrentLocation({ latitude: position.coords.latitude, longitude: position.coords.longitude });
                         
                         setTraceid(res.id)
+                        setPostTraces(res);
 
                     } catch (traceError) {
                         console.error("Error creating trace:", traceError);
@@ -202,16 +221,12 @@ const Tracking = ({ navigation, route }) => {
 
     const onCameraPress = () => {
         console.log(" trace id on camera press", traceid);
-        navigation.navigate('CameraScreen', {traceid : traceid});
+        navigation.navigate('CameraScreen', {traceid : traceid, postTraces : postTraces});
     }
 
     const onVideoCameraPress = () => {
         console.log(" trace id on camera press", traceid);
         navigation.navigate('VideoCameraScreen', {traceid : traceid, tripId: tripId });
-    }
-
-    const onMessagePress = () => {
-        console.log("on message press");
     }
 
     return (
@@ -280,9 +295,10 @@ const Tracking = ({ navigation, route }) => {
                                     <TouchableOpacity onPress={() => onVideoCameraPress()} style={{ marginHorizontal: 20 }}>
                                         <Icon name="videocam" size={50} color="#0077b6" />
                                     </TouchableOpacity>
-                                    <TouchableOpacity onPress={onMessagePress} style={{ marginHorizontal: 20, marginTop: 5 }}>
+                                    <TouchableOpacity onPress={showModal} style={{ marginHorizontal: 20, marginTop: 5 }}>
                                         <MaterialIcons name="message" size={40} color="#db3a34" />
                                     </TouchableOpacity>
+                                    <MessageModal visible={modalVisible} hideModal={hideModal} submitText={handleSubmit} />
                                     <TouchableOpacity style={{ marginHorizontal: 20 }}>
                                         <MaterialIcons name="sos" size={50} color="#FFA500" />
                                     </TouchableOpacity>

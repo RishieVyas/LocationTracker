@@ -11,6 +11,7 @@ import { TripsProvider } from './src/utils/useTripsContext';
 import { TracesProvider } from './src/utils/useTracesContext';
 import { UserDetailProvider } from './src/utils/userDetailsContext';
 import { AttachmentsProvider } from './src/utils/useAttachmentsContext';
+import { CommentsProvider } from './src/utils/useCommentsContext';
 
 const App = () => {
 
@@ -122,15 +123,17 @@ const App = () => {
     <PaperProvider theme={theme}>
       <IntervalProvider currentLocation={currentLocation} setCurrentLocation={setCurrentLocation}>
         <UserDetailProvider>
+        <CommentsProvider>
           <AttachmentsProvider>
-            <TripsProvider>
-              <TracesProvider>
-                <NavigationContainer>
-                  <Navigation />
-                </NavigationContainer>
-              </TracesProvider>
-            </TripsProvider>
+              <TripsProvider>
+                <TracesProvider>
+                  <NavigationContainer>
+                    <Navigation />
+                  </NavigationContainer>
+                </TracesProvider>
+              </TripsProvider>
           </AttachmentsProvider>
+          </CommentsProvider>
         </UserDetailProvider>
       </IntervalProvider>
     </PaperProvider>

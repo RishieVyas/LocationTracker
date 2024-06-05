@@ -5,14 +5,15 @@ import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 import { useAttachments } from '../utils/useAttachmentsContext';
 import { Button, useTheme } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { useTraces } from '../utils/useTracesContext';
 
 const CameraScreen = ({ route, navigation }) => {
     const [mediaUri, setMediaUri] = useState(null);
     const [cameraPermission, setCameraPermission] = useState(false);
     const [microphonePermission, setMicrophonePermission] = useState(false);
-    const { createAttachment, setMediaType } = useAttachments();
-    const {traceid} = route.params
-    //   const device = useCameraDevices().back;
+    const { createAttachment, setMediaType, setPictureCoords, pictureCoords } = useAttachments();
+    const {traceid, postTraces} = route.params
+
     const device = useCameraDevice('back', {
         physicalDevices: [
             'ultra-wide-angle-camera',
@@ -33,6 +34,13 @@ const CameraScreen = ({ route, navigation }) => {
         };
         requestPermissions();
     }, []);
+
+    useEffect(() => {
+        setPictureCoords({
+            latitude : postTraces?.lat,
+            longitude : postTraces?.lng
+        })
+    }, [postTraces])
 
     const handleMediaCapture = async () => {
         if (camera.current) {
