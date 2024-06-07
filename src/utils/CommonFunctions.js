@@ -19,7 +19,7 @@ const formatPhoneNumber = (phoneNumber) => {
   
     if (digits.length < 4) return digits;
     if (digits.length < 7) return `(${areaCode}) ${middle}`;
-    if (digits.length > 10) return '';
+    if (digits.length > 10) return digits ;
     return `(${areaCode})-${middle}-${last}`;
 };
 

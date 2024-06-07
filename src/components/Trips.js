@@ -30,7 +30,9 @@ const Trips = ({navigation}) => {
         deleteTipsRes,
         createTrips,
         newTrip,
-        loadingNewTrips
+        loadingNewTrips,
+        setTripId, 
+        tripId
     } = useTrips();
 
     useEffect(() => {
@@ -50,15 +52,19 @@ const Trips = ({navigation}) => {
         });
         console.log("---------------------Trip Created -----------------", res);
         if(!loadingNewTrips && res?.id) {
-            navigation.navigate('Tracking', {tripId: res?.id});
+            setTripId(res?.id)
+            navigation.navigate('Tracking', {tripId : res?.id});
         }
         console.log('Start New Trip');
     };
 
-    const handleOpenTrip = (id) => {
+    const handleOpenTrip = (id, status) => {
         if (id) {
-            // navigation.navigate('Tracking', { tripId: id });
-            navigation.navigate('PastTrips')
+            if(status == "ONGOING"){
+                navigation.navigate('Tracking', {tripId : id});
+            } else {
+                navigation.navigate('PastTrips')
+            }
             console.log('Open Trip:', id);
         } else {
             ToastAndroid.show("Invalid trip ID", ToastAndroid.SHORT);
@@ -81,7 +87,7 @@ const Trips = ({navigation}) => {
                 <Button icon="delete" textColor= {theme.colors.primary} buttonColor='#FFF' style={{borderColor: theme.colors.primary}} onPress={() => handleDeleteTrip(item?.id)}>
                     Delete
                 </Button>
-                <Button icon="map" style={{backgroundColor: theme.colors.primary}} onPress={() => handleOpenTrip(item?.id)}>
+                <Button icon="map" style={{backgroundColor: theme.colors.primary}} onPress={() => handleOpenTrip(item?.id, item?.status)}>
                     Open
                 </Button>
             </Card.Actions>

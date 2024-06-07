@@ -13,6 +13,7 @@ export const TripsProvider = ({ children }) => {
     const [loadingNewTrips, setLoadingNewTrips] = useState(false);
     const [errorTrips, setErrorTrips] = useState(null);
     const [deleteTripRes, setDeleteTripRes] = useState(false);
+    const [tripId, setTripId] = useState("")
 
     const createTrips = async (payload) => {
         try {
@@ -31,6 +32,7 @@ export const TripsProvider = ({ children }) => {
             if (deviceId == " ") {
                 const data = await fetchApi(`/trips`, 'GET');
                 setTrips(data);
+                console.log("trips data", data);
                 return trips;
             } else {
                 const data = await fetchApi(`/trips?${deviceId}`, 'GET');
@@ -69,12 +71,14 @@ export const TripsProvider = ({ children }) => {
         loadingTrips,
         errorTrips,
         deleteTripRes,
+        tripId,
         createTrips,
         fetchTrips,
         deleteTrips,
         newTrip,
         loadingNewTrips,
-        patchTrip
+        patchTrip,
+        setTripId
     };
 
     return <TripsContext.Provider value={value}>{children}</TripsContext.Provider>;

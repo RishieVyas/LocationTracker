@@ -6,6 +6,7 @@ import { useAttachments } from '../utils/useAttachmentsContext';
 import { Button, useTheme } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useTraces } from '../utils/useTracesContext';
+import RNFS from 'react-native-fs';
 
 const CameraScreen = ({ route, navigation }) => {
     const [mediaUri, setMediaUri] = useState(null);
@@ -50,11 +51,23 @@ const CameraScreen = ({ route, navigation }) => {
         }
     };
 
+    const getFileSize = async (uri) => {
+        try {
+            const stats = await RNFS.stat(uri);
+            return stats.size;
+        } catch (error) {
+            console.error('Error getting file size:', error);
+            return null;
+        }
+    };
+
 
     const handleUpload = async () => {
         if (mediaUri) {
             try {
                 console.log("trace id --->", traceid);
+                const fileSize = await getFileSize(mediaUri);
+                console.log("file size of image is ", fileSize);
                 await createAttachment(traceid, mediaUri);
                 navigation.goBack();
             } catch (error) {

@@ -6,6 +6,8 @@ import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 import Video from 'react-native-video';
 import { Button, useTheme } from 'react-native-paper';
 import { useAttachments } from '../utils/useAttachmentsContext';
+import { FFmpegKit } from 'ffmpeg-kit-react-native';
+import RNFS from 'react-native-fs';
 
 const VideoCameraScreen = ({ route, navigation }) => {
     const camera = useRef(null);
@@ -34,8 +36,8 @@ const VideoCameraScreen = ({ route, navigation }) => {
     const [flashEnable, setFlashEnable] = useState('off');
     const [frontCamera, setFrontCamera] = useState(false);
     const { createAttachment, setMediaType } = useAttachments();
-    const [convertedUri, setConvertedUri] = useState(null);
-    const [storagePermission, setStoragePermission] = useState(false);
+    const destinationDir = Platform.OS === 'ios' ? RNFS.DocumentDirectoryPath : RNFS.ExternalDirectoryPath;
+    const destinationPath = `${destinationDir}/your_video_filename.mp4`;
 
     useEffect(() => {
         const requestPermissions = async () => {
@@ -55,6 +57,55 @@ const VideoCameraScreen = ({ route, navigation }) => {
         );
     }
 
+
+    const compressVideo = async (videoUri) => {
+        const outputUri = videoUri.replace('.mov', '_compressed.mp4'); // Change file extension for output
+    
+        // FFmpeg command to compress the video
+        const command = `-i ${videoUri} -vcodec h264 -b:v 1000k -acodec aac ${outputUri}`;
+    
+        return new Promise((resolve, reject) => {
+            FFmpegKit.execute(command).then(session => {
+                session.getReturnCode().then(returnCode => {
+                    if (returnCode.isValueSuccess()) {
+                        console.log('Compression successful, output file:', outputUri);
+                        resolve(outputUri);
+                    } else {
+                        console.error('Compression failed:', returnCode);
+                        reject('Compression failed');
+                    }
+                }).catch(error => {
+                    console.error('Error getting return code:', error);
+                    reject(error);
+                });
+            }).catch(error => {
+                console.error('Error during compression:', error);
+                reject(error);
+            });
+        });
+    };
+
+    const getFileSize = async (uri) => {
+        try {
+            const stats = await RNFS.stat(uri);
+            return stats.size;
+        } catch (error) {
+            console.error('Error getting file size:', error);
+            return null;
+        }
+    };
+
+    const saveToDevice = async (videoUri) => {
+
+        await RNFS.copyFile(videoUri, destinationPath)
+            .then(() => {
+                console.log('Video saved successfully to:', destinationPath);
+            })
+            .catch((error) => {
+                console.error('Error saving video:', error);
+            });
+    }
+
     
 
     const handleVideoCapture = async () => {
@@ -62,20 +113,19 @@ const VideoCameraScreen = ({ route, navigation }) => {
         if (camera.current) {
             if (isRecording) {
                 const video = await camera.current.stopRecording();
-                setMediaUri(video?.path);
+                setMediaUri(video?.path)
                 setIsRecording(false);
                 setMediaType('video');
             } else {
                 await camera.current.startRecording({
                     onRecordingFinished: (video) => {
-                        setMediaUri(video.path)
-                    //     CameraRoll.save(`file://${mediaUri}`, {
-                    //     type: 'video',
-                    // })
+                        console.log("---------video value in recording finished--------", video);
+                        setMediaUri(`file://${video?.path}`);
                     },
                     onRecordingError: (error) => console.error(error),
                     flash: flashEnable,
-                    videoBitRate: 'low'
+                    videoBitRate: 'low',
+                    videoCodec: 'h265'
                 });
                 setIsRecording(true);
             }
@@ -85,8 +135,16 @@ const VideoCameraScreen = ({ route, navigation }) => {
     const handleUpload = async () => {
             try {
                 // console.log("trace id --->", traceid);
-                await createAttachment(traceid, mediaUri);
-                navigation.navigate('Tracking', { tripId: tripId });
+                // const compressedUri = await compressVideo(mediaUri);
+                const fileSize = await getFileSize(mediaUri);
+                saveToDevice(mediaUri)
+                
+                    console.log('----Compressed file size:-----', fileSize);
+                
+                if (mediaUri) {
+                    await createAttachment(traceid, mediaUri);
+                    navigation.navigate('Tracking', { tripId: tripId });
+                }
             } catch (error) {
                 console.error('Upload failed:', error);
             }

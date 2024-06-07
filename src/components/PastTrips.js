@@ -30,24 +30,24 @@ const sampleTrips = [
             { latitude: 37.78925, longitude: -122.4344 },
         ],
     },
-    {
-        id: '2',
-        date: '2024-05-21',
-        duration: '1 hour',
-        attachments: [
-            {
-                id: 'a3',
-                uri: 'https://example.com/sample-photo2.jpg',
-                type: 'photo',
-            },
-        ],
-        notes: 'This is a sample note for trip 2.',
-        commentId: 'c2',
-        traces: [
-            { latitude: 37.78925, longitude: -122.4354 },
-            { latitude: 37.79025, longitude: -122.4364 },
-        ],
-    },
+    // {
+    //     id: '2',
+    //     date: '2024-05-21',
+    //     duration: '1 hour',
+    //     attachments: [
+    //         {
+    //             id: 'a3',
+    //             uri: 'https://example.com/sample-photo2.jpg',
+    //             type: 'photo',
+    //         },
+    //     ],
+    //     notes: 'This is a sample note for trip 2.',
+    //     commentId: 'c2',
+    //     traces: [
+    //         { latitude: 37.78925, longitude: -122.4354 },
+    //         { latitude: 37.79025, longitude: -122.4364 },
+    //     ],
+    // },
 ];
 
 const PastTrips = () => {
@@ -153,6 +153,7 @@ const PastTrips = () => {
         <View style={styles.container}>
             <FlatList
                 data={sampleTrips}
+                style={{flex:1}}
                 renderItem={renderTrip}
                 keyExtractor={(item) => item.id.toString()}
             />
@@ -177,6 +178,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.2,
         shadowRadius: 5,
         elevation: 5,
+        flex:1
     },
     tripHeader: {
         flexDirection: 'row',

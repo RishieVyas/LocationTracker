@@ -6,6 +6,7 @@ import { useAttachments } from '../utils/useAttachmentsContext';
 
 const Map = ({ currentLocation, pathCoordinates, tracking }) => {
     // const {currentLocation} = useInterval
+    const {pictureCoords} = useAttachments();
 
     return (
         <View style={{ flex: 1, marginVertical: 5 }}>
@@ -26,15 +27,12 @@ const Map = ({ currentLocation, pathCoordinates, tracking }) => {
                         }}
                         pinColor='red'
                     />
-                    {pictureCoords ?
+                    {/* {pictureCoords === undefined ? null :
                         <Marker
-                            coordinate={{
-                                latitude: pictureCoords.latitude,
-                                longitude: pictureCoords.longitude
-                            }}
+                            coordinate={pictureCoords}
                             pinColor='indigo'
-                        /> : null
-                    }
+                        />
+                    } */}
                     <Polyline
                         coordinates={pathCoordinates}
                         strokeColor="red" // border color

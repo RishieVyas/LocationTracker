@@ -23,7 +23,7 @@ export const AttachmentsProvider = ({ children }) => {
 
         const headers = {
             'Content-Type': 'multipart/form-data',
-            'Authorization': `Bearer ${token}`,
+            'Authorization': `Bearer ${token}`
         };
     
         const config = {
@@ -36,8 +36,9 @@ export const AttachmentsProvider = ({ children }) => {
             console.log("API URL: ", `${API_BASE_URL}${endpoint}`);
             const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
       
-            const result = await response.json();
-            console.log("result of the API", result);
+            const result = mediaType == "photo" ? await response.json() : await response.text();
+             console.log("result of the API", result);
+
             if (response.ok) {
               Alert.alert('Success', 'Media uploaded successfully');
             } else {
@@ -50,7 +51,7 @@ export const AttachmentsProvider = ({ children }) => {
         }
 
     const createAttachment = async (traceId, uri) => {
-        const data = new FormData;
+        const data = new FormData();
         data.append('deviceTraceId', traceId) ;
         data.append('attachment', {
             name: mediaType === 'photo' ? 'photo.jpg' : 'video.mov',

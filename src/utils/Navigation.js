@@ -21,13 +21,15 @@ const Navigation = () => {
             const onboarded = await AsyncStorage.getItem('onboarded');
             const tracking = await AsyncStorage.getItem('tracking');
             
-            if (tracking === 'true') {
+            if (tracking === 'true' || onboarded === 'true') {
                 console.log('initial route as tracking', tracking);
-                setInitialRoute("Tracking");
-            } else if (onboarded === 'true') {
-                console.log('initial route as Trips', onboarded);
                 setInitialRoute("Trips");
-            } else {
+            } 
+            // else if (onboarded === 'true') {
+            //     console.log('initial route as Trips', onboarded);
+            //     setInitialRoute("Trips");
+            // } 
+            else {
                 setInitialRoute("Onboarding");
             }
             setIsLoading(false);

@@ -20,11 +20,11 @@ const sleep = (time) => new Promise((resolve) => setTimeout(() => resolve(), tim
 const Tracking = ({ navigation, route }) => {
 
     const { createTraces, postTraces, setPostTraces } = useTraces();
-    const { tripId } = route.params;
     const { mobileNumber, batteryCharging } = userDetails();
     const { tripDuration, isActive, setIsActive, timer, currentLocation, setCurrentLocation } = useInterval();
     const { patchTrip } = useTrips();
     const {createComments} = useComments();
+    const { tripId } = route.params;
 
     const [tracking, setTracking] = useState(false);
     const [mapView, setMapView] = useState(false);

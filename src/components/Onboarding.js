@@ -20,9 +20,11 @@ const Onboarding = ({ navigation }) => {
     setVehicle,
     emergencyContact,
     setEmergencyContact,
+    displayMobileNumber,
+    setDisplayMobileNumber
   } = userDetails();
 
-  const [displayMobileNumber, setDisplayMobileNumber] = useState('');
+  
 
   const saveUserDetails = async (details) => {
     try {
