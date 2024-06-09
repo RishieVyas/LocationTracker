@@ -14,7 +14,7 @@ export const TracesProvider = ({ children }) => {
         console.log("Traces Payload", payload);
         try {
             const data = await fetchApi('/traces', 'POST', payload);
-            console.log(" Traces Posted ", data);
+            console.log(" Traces Posted of the trip", data);
             setPostTraces(data)
             setError(null);
             return data;
