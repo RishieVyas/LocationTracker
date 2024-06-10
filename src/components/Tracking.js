@@ -30,6 +30,7 @@ const Tracking = ({ navigation, route }) => {
     const [mapView, setMapView] = useState(false);
     const [pathCoordinates, setPathCoordinates] = useState([]);
     const [traceid, setTraceid] = useState("");
+    const [newTrip, setNewTrip] = useState(false)
     const theme = useTheme();
 
     const [modalVisible, setModalVisible] = useState(false);
@@ -175,6 +176,7 @@ const Tracking = ({ navigation, route }) => {
                 await BackgroundService.updateNotification({ taskDesc: 'Tracking in Progress' });
             }
             await AsyncStorage.setItem('tracking', 'true'); // Save tracking state
+            patchTrip(tripId,{ status: 'ONGOING' });
             console.log('Background service started successfully');
         } catch (error) {
             console.error('Error starting the background service:', error);
@@ -215,6 +217,7 @@ const Tracking = ({ navigation, route }) => {
         } else {
             console.log('Location Tracking Stopped');
             stopBackGroundTracking();
+            setNewTrip(true)
         }
         setIsActive(!isActive);
     }
@@ -273,7 +276,7 @@ const Tracking = ({ navigation, route }) => {
                 {!mapView ?
                     <>
                         <Text style={{ color: theme.colors.primary, fontSize: 25, fontWeight: 'bold', marginTop: 20 }}>{formatTime(timer)}</Text>
-                        <TouchableOpacity onPress={handleLocationTracking} style={{ marginVertical: 10 }} >
+                        <TouchableOpacity onPress={handleLocationTracking} style={{ marginVertical: 10 }} disabled={newTrip ? true : false} >
                             <Icon
                                 name={tracking ? "stop-circle" : "power-sharp"}
                                 size={250}
@@ -306,7 +309,7 @@ const Tracking = ({ navigation, route }) => {
                             </>
                             :
                             <View style={{ justifyContent: 'center', alignItems: 'center' }}>
-                                <Text style={[styles.heading, { color: "#000" }]}>Tap to start location tracking</Text>
+                                <Text style={[styles.heading, { color: newTrip ? "#ef476f" : "#000" }]}>{newTrip ? " Go back and start a new trip " : "Tap to start location tracking"}</Text>
                                 <Text style={{ color: theme.colors.primary, marginTop: 10, fontSize: 15 }}>Your trip duration was {formatTime(tripDuration)}</Text>
                             </View>
                         }

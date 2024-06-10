@@ -67,7 +67,7 @@ export const IntervalProvider = ({ children, currentLocation, setCurrentLocation
 
 
     return (
-        <IntervalContext.Provider value={{ count, startInterval, stopInterval, counterStopped, setCount, tripDuration, isActive, setIsActive, timer, currentLocation, setCurrentLocation }}>
+        <IntervalContext.Provider value={{ count, startInterval, stopInterval, counterStopped, setCount, tripDuration, isActive, setIsActive, timer, currentLocation, setCurrentLocation, setTimer }}>
             {children}
         </IntervalContext.Provider>
     );
