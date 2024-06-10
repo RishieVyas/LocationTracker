@@ -1,5 +1,5 @@
 import React, { useEffect, useContext, useState } from 'react';
-import { View, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, ToastAndroid } from 'react-native';
+import { View, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, ToastAndroid, Alert } from 'react-native';
 import { Button, Card, Title, Paragraph, useTheme } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useTrips } from '../utils/useTripsContext';
@@ -73,8 +73,17 @@ const Trips = ({navigation}) => {
 
     const handleDeleteTrip = (id) => {
         console.log('Delete Trip:', id);
-        deleteTrips(id);
-        fetchTrips(" "); 
+        Alert.alert('Delete Trip', 'You want to delete this trip?', [
+            {
+              text: 'Cancel',
+              onPress: () => console.log('Cancel Pressed'),
+              style: 'cancel',
+            },
+            {text: 'OK', onPress: () => {
+                deleteTrips(id)
+                fetchTrips(" ")
+            }},
+          ]);
     };
 
     const renderTrip = ({ item }) => (
@@ -97,17 +106,23 @@ const Trips = ({navigation}) => {
     return (
         <View style={styles.container}>
             <TouchableOpacity onPress={() => navigation.navigate('Onboarding')} style={{marginBottom: 5}}>
-                <Icon name="arrow-back-sharp" size={30} color={theme.colors.primary} />
+                <Icon name="person" size={30} color={theme.colors.primary} />
             </TouchableOpacity>
             <Button icon="plus" mode="contained" onPress={handleNewTrip} style={{backgroundColor: theme.colors.primary, marginVertical: 10}}>
                 New Trip
             </Button>
-            {trips?.items?.length == undefined || trips?.items?.length == 0 ? <Paragraph style={{ textAlign: 'center', marginTop: 40, color: 'darkgrey' }}>No trips available {`\n`} Lets start a new trip</Paragraph> :
+            {trips?.items?.length == undefined ? <ActivityIndicator size={'large'}/> : null}
+            {trips?.items?.length == 0 ? <Paragraph style={{ textAlign: 'center', marginTop: 40, color: 'darkgrey' }}>No trips available {`\n`} Lets start a new trip</Paragraph> :
                 <FlatList
                     data={trips.items}
                     renderItem={renderTrip}
                     keyExtractor={item => item.id}
                 />
+            }
+            {loadingTrips &&
+                <View style={{flex:1, alignItems: 'center', justifyContent: 'center', position: 'absolute', height:"100%", width:"100%", marginLeft: 10, marginTop: 10}}>
+                    <ActivityIndicator size={'large'} color={theme.colors.primary} />
+                </View>
             }
         </View>
     );

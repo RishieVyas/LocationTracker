@@ -27,7 +27,7 @@ export const TripsProvider = ({ children }) => {
 
     const fetchTrips = async (deviceId) => {
         console.log("Fetching Trips called", deviceId);
-        setLoadingTrips(true);
+        // setLoadingTrips(true);
         try {
             if (deviceId == " ") {
                 const data = await fetchApi(`/trips`, 'GET');
@@ -42,9 +42,10 @@ export const TripsProvider = ({ children }) => {
         } catch (err) {
             setErrorTrips(err.message);
             setTrips([]);
-        } finally {
-            setLoadingTrips(false);
-        }
+        } 
+        // finally {
+        //     setLoadingTrips(false);
+        // }
     }
 
     const deleteTrips = async (tripId) => {

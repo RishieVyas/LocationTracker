@@ -43,7 +43,7 @@ const Navigation = () => {
             <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: 'white' }}>
                 <ActivityIndicator size="large" />
             </View>
-        ); // Show a spinner or loading indicator until the initial route is determined
+        );
     }
 
     return (
