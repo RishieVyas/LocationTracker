@@ -27,9 +27,10 @@ export const TracesProvider = ({ children }) => {
     const fetchTraces = async (tripId) => {
         setLoading(true);
         try {
-            const data = await fetchApi(`/traces/${tripId}`, 'GET');
-            setTraces(data);
+            const data = await fetchApi(`/traces?tripId=${tripId}`, 'GET');
+            // setTraces(data.items);
             setError(null);
+            return data;
         } catch (err) {
             setError(err.message);
             setTraces([]);
@@ -59,7 +60,8 @@ export const TracesProvider = ({ children }) => {
         createTraces,
         fetchTraces,
         deleteTraces,
-        setPostTraces
+        setPostTraces,
+        setTraces
     };
 
     return <TracesContext.Provider value={value}>{children}</TracesContext.Provider>;

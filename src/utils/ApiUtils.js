@@ -12,7 +12,7 @@ export const fetchApi = async (endpoint, method, body) => {
     const config = {
         method: method,
         headers: headers,
-        body: method == "GET" && method == "DELETE" ? null : JSON.stringify(body),
+        body: (method == "GET" || method == "DELETE" )? null : JSON.stringify(body),
     };
 
     try {
