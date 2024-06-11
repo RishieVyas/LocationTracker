@@ -234,9 +234,11 @@ const Tracking = ({ navigation, route }) => {
 
     return (
         <View style={styles.container}>
+            {newTrip || tracking ? 
             <TouchableOpacity onPress={() => navigation.navigate('Trips')} style={{ margin: 10 }}>
                 <Icon name="arrow-back-sharp" size={30} color={theme.colors.primary} />
             </TouchableOpacity>
+            : null }
             <View style={{ alignItems: 'center' }}>
                 <Text style={{ marginVertical: 20, fontSize: 20, color: "#000", fontWeight: 'bold' }}>{getCurrentDate()}</Text>
                 <View style={{ flexDirection: 'row' }}>
@@ -310,7 +312,7 @@ const Tracking = ({ navigation, route }) => {
                             :
                             <View style={{ justifyContent: 'center', alignItems: 'center' }}>
                                 <Text style={[styles.heading, { color: newTrip ? "#ef476f" : "#000" }]}>{newTrip ? " Go back and start a new trip " : "Tap to start location tracking"}</Text>
-                                <Text style={{ color: theme.colors.primary, marginTop: 10, fontSize: 15 }}>Your trip duration was {formatTime(tripDuration)}</Text>
+                                <Text style={{ color: theme.colors.primary, marginTop: 10, fontSize: 15 }}>{newTrip ? `Your trip duration was ${formatTime(tripDuration)}` : null}</Text>
                             </View>
                         }
                     </> : null}
