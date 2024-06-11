@@ -42,7 +42,7 @@ const Onboarding = ({ navigation }) => {
     if (firstName == "" || lastName == "" || mobileNumber == "" || vehicle == "" || emergencyContact == "") {
       return alert('Please fill in all the fields');
     } else if (cleanPhoneNumber(mobileNumber).length !== 10 || cleanPhoneNumber(emergencyContact).length !== 10) {
-      return alert('Contact number should be 10 digits');
+      return alert('Contact number must be 10 digits');
     }
     else {
       navigation.navigate('Trips');

@@ -176,7 +176,7 @@ const Tracking = ({ navigation, route }) => {
                 await BackgroundService.updateNotification({ taskDesc: 'Tracking in Progress' });
             }
             await AsyncStorage.setItem('tracking', 'true'); // Save tracking state
-            patchTrip(tripId,{ status: 'ONGOING' });
+            // patchTrip(tripId,{ status: 'ONGOING' });
             console.log('Background service started successfully');
         } catch (error) {
             console.error('Error starting the background service:', error);

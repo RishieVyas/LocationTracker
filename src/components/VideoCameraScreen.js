@@ -164,10 +164,11 @@ const VideoCameraScreen = ({ route, navigation }) => {
 
     const onRecordAgainPressed = async () => {
         if (camera.current) {
+            console.log("Record again pressed");
             await camera.current.cancelRecording()
             setMediaUri(null)
-            navigation.goBack();
         }
+        navigation.goBack();
     }
 
     const onReverseCameraPressed = () => {
