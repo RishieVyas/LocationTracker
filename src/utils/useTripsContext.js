@@ -35,7 +35,7 @@ export const TripsProvider = ({ children }) => {
                 console.log("trips data", data);
                 return trips;
             } else {
-                const data = await fetchApi(`/trips?${deviceId}`, 'GET');
+                const data = await fetchApi(`/trips?deviceId=${deviceId}`, 'GET');
                 setTrips(data);
                 return trips;  
             }
