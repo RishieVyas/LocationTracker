@@ -3,6 +3,8 @@ import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, Alert } from
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MapView, { Polyline, Marker } from 'react-native-maps';
+import Icon from 'react-native-vector-icons/Ionicons';
+import { useTheme } from 'react-native-paper';
 
 // Sample data
 const sampleTrips = [
@@ -30,28 +32,29 @@ const sampleTrips = [
             { latitude: 37.78925, longitude: -122.4344 },
         ],
     },
-    // {
-    //     id: '2',
-    //     date: '2024-05-21',
-    //     duration: '1 hour',
-    //     attachments: [
-    //         {
-    //             id: 'a3',
-    //             uri: 'https://example.com/sample-photo2.jpg',
-    //             type: 'photo',
-    //         },
-    //     ],
-    //     notes: 'This is a sample note for trip 2.',
-    //     commentId: 'c2',
-    //     traces: [
-    //         { latitude: 37.78925, longitude: -122.4354 },
-    //         { latitude: 37.79025, longitude: -122.4364 },
-    //     ],
-    // },
+    {
+        id: '2',
+        date: '2024-05-21',
+        duration: '1 hour',
+        attachments: [
+            {
+                id: 'a3',
+                uri: 'https://example.com/sample-photo2.jpg',
+                type: 'photo',
+            },
+        ],
+        notes: 'This is a sample note for trip 2.',
+        commentId: 'c2',
+        traces: [
+            { latitude: 37.78925, longitude: -122.4354 },
+            { latitude: 37.79025, longitude: -122.4364 },
+        ],
+    },
 ];
 
 const PastTrips = () => {
     const navigation = useNavigation();
+    const theme = useTheme();
 
     const handleDeleteAttachment = (attachmentId) => {
         Alert.alert('Delete Attachment', 'Are you sure you want to delete this attachment?', [
@@ -151,6 +154,9 @@ const PastTrips = () => {
 
     return (
         <View style={styles.container}>
+            <TouchableOpacity onPress={() => navigation.navigate('Trips')} style={{ margin: 10 }}>
+                <Icon name="arrow-back-sharp" size={30} color={theme.colors.primary} />
+            </TouchableOpacity>
             <FlatList
                 data={sampleTrips}
                 style={{flex:1}}

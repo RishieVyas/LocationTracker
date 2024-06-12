@@ -12,7 +12,6 @@ export const UserDetailProvider = ({ children }) => {
     const [lastName, setLastName] = useState('');
     const [mobileNumber, setMobileNumber] = useState('');
     const [vehicle, setVehicle] = useState('');
-    const [emergencyContact, setEmergencyContact] = useState('');
     const [batteryCharging, setBatteryCharging] = useState(false);
     const [displayMobileNumber, setDisplayMobileNumber] = useState('');
 
@@ -36,7 +35,6 @@ export const UserDetailProvider = ({ children }) => {
                 setLastName(details.lastName);
                 setMobileNumber(details.mobileNumber);
                 setVehicle(details.vehicle);
-                setEmergencyContact(details.emergencyContact);
                 setDisplayMobileNumber(details.displayMobileNumber);
             }
         };
@@ -65,8 +63,6 @@ export const UserDetailProvider = ({ children }) => {
         setMobileNumber,
         vehicle,
         setVehicle,
-        emergencyContact,
-        setEmergencyContact,
         batteryCharging,
         displayMobileNumber,
         setDisplayMobileNumber

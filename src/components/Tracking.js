@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, AppState } from 'react-native';
 import { useTheme } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -19,7 +19,7 @@ const sleep = (time) => new Promise((resolve) => setTimeout(() => resolve(), tim
 
 const Tracking = ({ navigation, route }) => {
 
-    const { createTraces, postTraces, setPostTraces } = useTraces();
+    const { createTraces, postTraces, setPostTraces, sosActive, setsosActive} = useTraces();
     const { mobileNumber, batteryCharging } = userDetails();
     const { tripDuration, isActive, setIsActive, timer, currentLocation, setCurrentLocation } = useInterval();
     const { patchTrip } = useTrips();
@@ -34,6 +34,33 @@ const Tracking = ({ navigation, route }) => {
     const theme = useTheme();
 
     const [modalVisible, setModalVisible] = useState(false);
+
+    const appState = useRef(AppState.currentState);
+    const sosActiveRef = useRef(sosActive);
+    const [appStateVisible, setAppStateVisible] = useState(appState.current);
+
+    useEffect(() => {
+        sosActiveRef.current = sosActive;
+    }, [sosActive]);
+
+    useEffect(() => {
+        const subscription = AppState.addEventListener('change', nextAppState => {
+            if (
+                appState.current.match(/inactive|background/) &&
+                nextAppState === 'active'
+            ) {
+                console.log('App has come to the foreground!');
+            }
+
+            appState.current = nextAppState;
+            setAppStateVisible(appState.current);
+            console.log('AppState', appState.current);
+        });
+
+        return () => {
+            subscription.remove();
+        };
+    }, []);
 
     const showModal = () => {
         setModalVisible(true);
@@ -97,6 +124,7 @@ const Tracking = ({ navigation, route }) => {
                 distanceFilter: 0,
                 interval: 5000
             };
+            console.log("app state", appStateVisible);
     
             const watcher = Geolocation.watchPosition(
                 async (position) => {
@@ -106,9 +134,13 @@ const Tracking = ({ navigation, route }) => {
 
                         // Create trace
 
+                        console.log("sos state", sosActiveRef.current);
+
                         const res = await createTraces({
                             alt: position.coords.altitude,
                             heading: position.coords.heading,
+                            isInDistress: sosActiveRef.current,
+                            isForeground: appState.current == 'active',
                             lat: position.coords.latitude,
                             lng: position.coords.longitude,
                             speed: position.coords.speed,
@@ -232,6 +264,14 @@ const Tracking = ({ navigation, route }) => {
         navigation.navigate('VideoCameraScreen', {traceid : traceid, tripId: tripId });
     }
 
+    const onSOSPressed = () => {
+        setsosActive(prev => {
+            const newState = !prev;
+            sosActiveRef.current = newState;  // Immediately update the ref as well
+            return newState;
+        });
+    }
+
     return (
         <View style={styles.container}>
             {newTrip || tracking ? 
@@ -304,14 +344,20 @@ const Tracking = ({ navigation, route }) => {
                                         <MaterialIcons name="message" size={40} color="#db3a34" />
                                     </TouchableOpacity>
                                     <MessageModal visible={modalVisible} hideModal={hideModal} submitText={handleSubmit} />
-                                    <TouchableOpacity style={{ marginHorizontal: 20 }}>
-                                        <MaterialIcons name="sos" size={50} color="#FFA500" />
+                                    <TouchableOpacity style={{ marginHorizontal: 20 }} onPress={onSOSPressed}>
+                                        <MaterialIcons name="sos" size={50} color={sosActive ? "red" : "green"} />
                                     </TouchableOpacity>
                                 </View>
+
+                                {sosActive ? 
+                                    <Text style={{fontSize: 15, color: "green", textAlign: 'center', margin: 10, fontWeight: 'bold'}}>
+                                        SOS activated. Location flagged and team alerted.{`\n`} Press SOS again to deactivate.
+                                    </Text>
+                                : null}
                             </>
                             :
                             <View style={{ justifyContent: 'center', alignItems: 'center' }}>
-                                <Text style={[styles.heading, { color: newTrip ? "#ef476f" : "#000" }]}>{newTrip ? " Go back and start a new trip " : "Tap to start location tracking"}</Text>
+                                <Text style={[styles.heading, { color: newTrip ? "#ef476f" : "#000" }]}>{newTrip ? " Go back to start a new trip " : "Tap to start location tracking"}</Text>
                                 <Text style={{ color: theme.colors.primary, marginTop: 10, fontSize: 15 }}>{newTrip ? `Your trip duration was ${formatTime(tripDuration)}` : null}</Text>
                             </View>
                         }

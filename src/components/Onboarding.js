@@ -18,8 +18,6 @@ const Onboarding = ({ navigation }) => {
     setMobileNumber,
     vehicle,
     setVehicle,
-    emergencyContact,
-    setEmergencyContact,
     displayMobileNumber,
     setDisplayMobileNumber
   } = userDetails();
@@ -38,16 +36,16 @@ const Onboarding = ({ navigation }) => {
 
   // Function to handle the form submission
   const handleSubmit = () => {
-    console.log('Form data', { firstName, lastName, mobileNumber, vehicle, emergencyContact });
-    if (firstName == "" || lastName == "" || mobileNumber == "" || vehicle == "" || emergencyContact == "") {
+    console.log('Form data', { firstName, lastName, mobileNumber, vehicle});
+    if (firstName == "" || lastName == "" || mobileNumber == "" || vehicle == "") {
       return alert('Please fill in all the fields');
-    } else if (cleanPhoneNumber(mobileNumber).length !== 10 || cleanPhoneNumber(emergencyContact).length !== 10) {
+    } else if (cleanPhoneNumber(mobileNumber).length !== 10) {
       return alert('Contact number must be 10 digits');
     }
     else {
       navigation.navigate('Trips');
       AsyncStorage.setItem('onboarded', 'true');
-      saveUserDetails({ firstName, lastName, mobileNumber, vehicle, emergencyContact, displayMobileNumber });
+      saveUserDetails({ firstName, lastName, mobileNumber, vehicle, displayMobileNumber });
     }
   };
 
@@ -117,18 +115,6 @@ const Onboarding = ({ navigation }) => {
         contentStyle={{ color: '#000' }}
         left={<TextInput.Icon icon="car" color={theme.colors.primary} />}
         style={styles.input}
-      />
-      <TextInput
-        label="Emergency Contact"
-        value={formatPhoneNumber(emergencyContact)}
-        onChangeText={setEmergencyContact}
-        mode="outlined"
-        outlineStyle={{ borderRadius: 20, borderColor: theme.colors.primary, borderWidth: 1 }}
-        contentStyle={{ color: '#000' }}
-        keyboardType="phone-pad"
-        left={<TextInput.Icon icon="phone-in-talk" color={theme.colors.primary} />}
-        style={styles.input}
-        rippleColor={theme.colors.primary}
       />
       <Button
         mode="contained"

@@ -1,5 +1,5 @@
 // TracesContext.js
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
 import { fetchApi } from './ApiUtils'
 
 const TracesContext = createContext();
@@ -9,6 +9,7 @@ export const TracesProvider = ({ children }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [postTraces, setPostTraces] = useState({})
+    const [sosActive, setsosActive] = useState(false)
 
     const createTraces = async (payload) => {
         console.log("Traces Payload", payload);
@@ -61,7 +62,9 @@ export const TracesProvider = ({ children }) => {
         fetchTraces,
         deleteTraces,
         setPostTraces,
-        setTraces
+        setTraces,
+        sosActive, 
+        setsosActive
     };
 
     return <TracesContext.Provider value={value}>{children}</TracesContext.Provider>;
