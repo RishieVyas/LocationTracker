@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Image, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { Camera, useCameraDevice, useCameraDevices } from 'react-native-vision-camera';
+import { Camera, useCameraDevice } from 'react-native-vision-camera';
 import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 import { useAttachments } from '../utils/useAttachmentsContext';
 import { Button, useTheme } from 'react-native-paper';
@@ -12,10 +12,21 @@ const CameraScreen = ({ route, navigation }) => {
     const [mediaUri, setMediaUri] = useState(null);
     const [cameraPermission, setCameraPermission] = useState(false);
     const [microphonePermission, setMicrophonePermission] = useState(false);
+    const [flashEnable, setFlashEnable] = useState('off');
+    const [frontCamera, setFrontCamera] = useState(false);
     const { createAttachment, setMediaType, setPictureCoords, loadingAttachments } = useAttachments();
-    const {traceid, postTraces} = route.params
+    const { traceid, postTraces } = route.params
 
     const device = useCameraDevice('back', {
+        physicalDevices: [
+            'ultra-wide-angle-camera',
+            'wide-angle-camera',
+            'telephoto-camera'
+        ],
+        hasFlash: true,
+        hasTorch: true,
+    })
+    const frontdevice = useCameraDevice('front', {
         physicalDevices: [
             'ultra-wide-angle-camera',
             'wide-angle-camera',
@@ -38,8 +49,8 @@ const CameraScreen = ({ route, navigation }) => {
 
     useEffect(() => {
         setPictureCoords({
-            latitude : postTraces?.lat,
-            longitude : postTraces?.lng
+            latitude: postTraces?.lat,
+            longitude: postTraces?.lng
         })
     }, [postTraces])
 
@@ -84,40 +95,67 @@ const CameraScreen = ({ route, navigation }) => {
         );
     }
 
+    const onCloseButtonPressed = () => {
+        navigation.goBack();
+    }
+
+    const onFlashPressed = () => {
+        console.log('flash pressed');
+        setFlashEnable((prevFlash) => (prevFlash === 'off' ? 'on' : 'off'));
+        // setFlashEnable(!flashEnable)
+        console.log('flash is ', flashEnable);
+    }
+
+    const onReverseCameraPressed = () => {
+        setFrontCamera(!frontCamera)
+    }
+
     return (
-        <View style={{flex:1}}>
+        <View style={{ flex: 1 }}>
             {!mediaUri ? <>
-            <Camera
-                ref={camera}
-                style={{flex:1}}
-                device={device}
-                isActive={true}
-                photo={true}
-                enableLocation={true}
-            /> 
-                <TouchableOpacity onPress={handleMediaCapture} style={styles.captureButton}/>
-                </>
+                <Camera
+                    ref={camera}
+                    style={{ flex: 1 }}
+                    device={!frontCamera ? device : frontdevice}
+                    isActive={true}
+                    photo={true}
+                    enableLocation={true}
+                    flash={flashEnable}
+                />
+                <View style={styles.topButtons}>
+                    <TouchableOpacity onPress={onCloseButtonPressed} style={styles.closeButton}>
+                        <Icon name="close" size={30} color="white" />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={onFlashPressed} style={styles.iconButton}>
+                        <Icon name={flashEnable === 'on' ? "flash" : "flash-off"} size={30} color={flashEnable === 'on' ? "orange" : "white"} />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={onReverseCameraPressed} style={styles.iconButton}>
+                        <Icon name="camera-reverse" size={30} color="white" />
+                    </TouchableOpacity>
+                </View>
+                <TouchableOpacity onPress={handleMediaCapture} style={styles.captureButton} />
+            </>
                 : null}
 
-            {mediaUri &&  (
-                <View style={{margin: 5, flex: 1}}>
+            {mediaUri && (
+                <View style={{ margin: 5, flex: 1 }}>
                     <TouchableOpacity onPress={() => navigation.goBack()} style={{ margin: 10 }}>
-                <Icon name="arrow-back-sharp" size={30} color={theme.colors.primary} />
-            </TouchableOpacity>
-                <Image source={{ uri: mediaUri }} style={styles.preview} />
+                        <Icon name="arrow-back-sharp" size={30} color={theme.colors.primary} />
+                    </TouchableOpacity>
+                    <Image source={{ uri: mediaUri }} style={styles.preview} />
                 </View>
             )}
             {mediaUri && (
                 <Button
                     mode="contained"
                     onPress={handleUpload}
-                    style={{marginHorizontal: 70, marginBottom: 10, paddingVertical: 5, borderRadius: 30}}
+                    style={{ marginHorizontal: 70, marginBottom: 10, paddingVertical: 5, borderRadius: 30 }}
                     icon="upload">
-                        Upload
+                    Upload
                 </Button>
             )}
-            {loadingAttachments && <ActivityIndicator size={'large'} style={{position: 'absolute'}} />}
-            </View>
+            {loadingAttachments && <ActivityIndicator size={'large'} style={{ position: 'absolute' }} />}
+        </View>
     );
 };
 
@@ -144,6 +182,9 @@ const styles = StyleSheet.create({
         borderColor: "white",
         borderWidth: 8
     },
+    closeButton: { marginLeft: 10 },
+    iconButton: { marginRight: 10, alignItems: 'center' },
+    topButtons: { position: 'absolute', top: 10, left: 10, right: 10, flexDirection: 'row', justifyContent: 'space-between' },
 });
 
 export default CameraScreen;
