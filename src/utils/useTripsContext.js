@@ -29,16 +29,10 @@ export const TripsProvider = ({ children }) => {
         console.log("Fetching Trips called", deviceId);
         // setLoadingTrips(true);
         try {
-            if (deviceId == " ") {
-                const data = await fetchApi(`/trips`, 'GET');
-                setTrips(data);
-                console.log("trips data", data);
-                return trips;
-            } else {
-                const data = await fetchApi(`/trips?deviceId=${deviceId}`, 'GET');
-                setTrips(data);
-                return trips;  
-            }
+            const data = await fetchApi(`/trips?deviceId=${deviceId}`, 'GET');
+            setTrips(data);
+            return trips;
+
         } catch (err) {
             setErrorTrips(err.message);
             setTrips([]);
