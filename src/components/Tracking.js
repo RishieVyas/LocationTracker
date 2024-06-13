@@ -261,7 +261,7 @@ const Tracking = ({ navigation, route }) => {
 
     const onVideoCameraPress = () => {
         console.log(" trace id on camera press", traceid);
-        navigation.navigate('VideoCameraScreen', {traceid : traceid, tripId: tripId });
+        navigation.navigate('VideoCameraScreen', {traceid : traceid, tripId: tripId, postTraces: postTraces });
     }
 
     const onSOSPressed = () => {

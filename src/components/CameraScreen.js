@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Image, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Image, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Camera, useCameraDevice, useCameraDevices } from 'react-native-vision-camera';
 import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 import { useAttachments } from '../utils/useAttachmentsContext';
@@ -12,7 +12,7 @@ const CameraScreen = ({ route, navigation }) => {
     const [mediaUri, setMediaUri] = useState(null);
     const [cameraPermission, setCameraPermission] = useState(false);
     const [microphonePermission, setMicrophonePermission] = useState(false);
-    const { createAttachment, setMediaType, setPictureCoords, pictureCoords } = useAttachments();
+    const { createAttachment, setMediaType, setPictureCoords, loadingAttachments } = useAttachments();
     const {traceid, postTraces} = route.params
 
     const device = useCameraDevice('back', {
@@ -116,6 +116,7 @@ const CameraScreen = ({ route, navigation }) => {
                         Upload
                 </Button>
             )}
+            {loadingAttachments && <ActivityIndicator size={'large'} style={{position: 'absolute'}} />}
             </View>
     );
 };

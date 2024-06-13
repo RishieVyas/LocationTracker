@@ -1,246 +1,127 @@
-import React from 'react';
-import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import React, {useEffect, useState} from 'react';
+import {View, Text, TouchableOpacity, ActivityIndicator, StyleSheet} from 'react-native';
+import { useTraces } from '../utils/useTracesContext';
+import { calculateAverageSpeed, calculateTotalDistance, formatTime, formatTimestamp } from '../utils/CommonFunctions';
 import MapView, { Polyline, Marker } from 'react-native-maps';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useTheme } from 'react-native-paper';
 
-// Sample data
-const sampleTrips = [
-    {
-        id: '1',
-        date: '2024-05-20',
-        duration: '2 hours',
-        attachments: [
-            {
-                id: 'a1',
-                uri: 'https://example.com/sample-photo.jpg',
-                type: 'photo',
-            },
-            {
-                id: 'a2',
-                uri: 'https://example.com/sample-video.mp4',
-                type: 'video',
-            },
-        ],
-        notes: 'This is a sample note for trip 1.',
-        commentId: 'c1',
-        traces: [
-            { latitude: 37.78825, longitude: -122.4324 },
-            { latitude: 37.78825, longitude: -122.4334 },
-            { latitude: 37.78925, longitude: -122.4344 },
-        ],
-    },
-    {
-        id: '2',
-        date: '2024-05-21',
-        duration: '1 hour',
-        attachments: [
-            {
-                id: 'a3',
-                uri: 'https://example.com/sample-photo2.jpg',
-                type: 'photo',
-            },
-        ],
-        notes: 'This is a sample note for trip 2.',
-        commentId: 'c2',
-        traces: [
-            { latitude: 37.78925, longitude: -122.4354 },
-            { latitude: 37.79025, longitude: -122.4364 },
-        ],
-    },
-];
+const PastTrips = ({route, navigation}) => {
 
-const PastTrips = () => {
-    const navigation = useNavigation();
+    const {tripId} = route.params;
+    const {fetchTraces} = useTraces();
+    const [traceTimeStamp, setTraceTimeStamp] = useState([]);
+    const [traceCoords, setTraceCoords] = useState([])
+    const [tracesSpeed, setTracesSpeed] = useState([])
+    const [tracesArr, setTracesArr] = useState([])
     const theme = useTheme();
 
-    const handleDeleteAttachment = (attachmentId) => {
-        Alert.alert('Delete Attachment', 'Are you sure you want to delete this attachment?', [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Delete', onPress: () => {/* Delete attachment logic */} },
-        ]);
-    };
-
-    const handleDeleteComment = (commentId) => {
-        Alert.alert('Delete Comment', 'Are you sure you want to delete this comment?', [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Delete', onPress: () => {/* Delete comment logic */} },
-        ]);
-    };
-
-    const handleDeleteTraces = (tripId) => {
-        Alert.alert('Delete Traces', 'Are you sure you want to delete these traces?', [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Delete', onPress: () => {/* Delete traces logic */} },
-        ]);
-    };
-
-    const renderAttachments = (attachments) => {
-        return (
-            <FlatList
-                data={attachments}
-                horizontal
-                renderItem={({ item }) => (
-                    <View style={styles.attachmentContainer}>
-                        {item.type === 'photo' ? (
-                            <Image source={{ uri: item.uri }} style={styles.attachmentImage} />
-                        ) : (
-                            <Text style={styles.attachmentText}>Video</Text>
-                        )}
-                        <TouchableOpacity onPress={() => handleDeleteAttachment(item.id)} style={styles.deleteButton}>
-                            <Ionicons name="trash" size={20} color="white" />
-                        </TouchableOpacity>
-                    </View>
-                )}
-                keyExtractor={(item) => item.id.toString()}
-            />
-        );
-    };
-
-    const renderTrip = ({ item }) => {
-        return (
-            <View style={styles.tripContainer}>
-                <View style={styles.tripHeader}>
-                    <Text style={styles.tripDate}>{item.date}</Text>
-                    <Text style={styles.tripDuration}>{item.duration}</Text>
-                </View>
-                {item.attachments.length > 0 && (
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Attachments</Text>
-                        {renderAttachments(item.attachments)}
-                    </View>
-                )}
-                {item.notes && (
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Notes</Text>
-                        <Text style={styles.notesText}>{item.notes}</Text>
-                        <TouchableOpacity onPress={() => handleDeleteComment(item.commentId)} style={styles.deleteButton}>
-                            <Ionicons name="trash" size={20} color="white" />
-                        </TouchableOpacity>
-                    </View>
-                )}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Trip Route</Text>
-                    <MapView
-                        style={styles.map}
-                        initialRegion={{
-                            latitude: item.traces[0].latitude,
-                            longitude: item.traces[0].longitude,
-                            latitudeDelta: 0.01,
-                            longitudeDelta: 0.01,
-                        }}
-                    >
-                        <Polyline
-                            coordinates={item.traces}
-                            strokeColor="red"
-                            strokeWidth={6}
-                        />
-                        {item.traces.map((trace, index) => (
-                            <Marker
-                                key={index}
-                                coordinate={trace}
-                            />
-                        ))}
-                    </MapView>
-                    <TouchableOpacity onPress={() => handleDeleteTraces(item.id)} style={styles.deleteButton}>
-                        <Ionicons name="trash" size={20} color="white" />
-                    </TouchableOpacity>
-                </View>
-            </View>
-        );
-    };
+    useEffect(() => {
+        const getTraces = async () => {
+            const traceRes = await fetchTraces(tripId);
+            if (traceRes) {
+                traceRes.items.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+                setTraceTimeStamp(traceRes.items.map((item) => item.timestamp))
+                setTraceCoords(traceRes.items.map((item) =>
+                    ({
+                        latitude : item.lat,
+                        longitude : item.lng
+                    })
+                ))
+                setTracesSpeed(traceRes.items.map((item) => item.speed))
+                setTracesArr(traceRes.items)
+            }
+        }
+        getTraces();
+    }, [])
 
     return (
-        <View style={styles.container}>
+        <View style={styles.container} >
             <TouchableOpacity onPress={() => navigation.navigate('Trips')} style={{ margin: 10 }}>
                 <Icon name="arrow-back-sharp" size={30} color={theme.colors.primary} />
             </TouchableOpacity>
-            <FlatList
-                data={sampleTrips}
-                style={{flex:1}}
-                renderItem={renderTrip}
-                keyExtractor={(item) => item.id.toString()}
-            />
+            <View style={styles.dateTimeView}>
+                <Text style={styles.dateText}>
+                    Trip Date : {formatTimestamp(traceTimeStamp[0])}{`\n\n`}Avg Speed : {calculateAverageSpeed(tracesSpeed).toFixed(2)} m/sec
+                </Text>
+                <Text style={styles.timeText}>
+                    Start Time : {formatTime(traceTimeStamp[0])}{`\n\n`}End Time : {formatTime(traceTimeStamp[traceTimeStamp.length-1])}
+                </Text>
+            </View>
+            <Text style={styles.distanceText} >Distance Travelled : {calculateTotalDistance(tracesArr)} meteres</Text>
+            {traceCoords.length > 0 ? 
+            <>
+                <MapView
+                    style={styles.map}
+                    initialRegion={{
+                        latitude: traceCoords[0].latitude,
+                        longitude: traceCoords[0].longitude,
+                        latitudeDelta: 0.01,
+                        longitudeDelta: 0.01,
+                    }}
+                >
+                    <Polyline
+                        coordinates={traceCoords}
+                        strokeColor="red"
+                        strokeWidth={6}
+                    />
+                        <Marker
+                            coordinate={
+                                {
+                                    latitude: traceCoords[0].latitude,
+                                    longitude: traceCoords[0].longitude
+                                }
+                            }
+                            pinColor='purple'
+                        />
+                        <Marker
+                            coordinate={
+                                {
+                                    latitude: traceCoords[traceCoords.length - 1].latitude,
+                                    longitude: traceCoords[traceCoords.length - 1].longitude
+                                }
+                            }
+                            pinColor='red'
+                        />
+                </MapView>
+            </> : <ActivityIndicator size={'large'} />}
         </View>
     );
 };
 
-export default PastTrips;
-
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#f5f5f5',
+    container : {
+        flex:1,
+        backgroundColor: "#FFF"
     },
-    tripContainer: {
-        backgroundColor: 'white',
-        margin: 10,
-        borderRadius: 10,
-        padding: 10,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 5,
-        elevation: 5,
-        flex:1
-    },
-    tripHeader: {
+    dateTimeView : {
         flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 10,
+        margin: 10
     },
-    tripDate: {
-        fontSize: 16,
-        fontWeight: 'bold',
+    dateText : {
+        fontSize : 15,
+        color: "#000",
+        textAlign: 'left'
     },
-    tripDuration: {
-        fontSize: 14,
-        color: 'gray',
+    timeText : {
+        fontSize : 15,
+        color: "#000",
+        flex:1,
+        textAlign: 'right'
     },
-    section: {
-        marginBottom: 10,
+    map : {
+        width: "95%",
+        height : "90%",
+        margin: 10,
+        marginRight: 30,
+        borderRadius: 20
     },
-    sectionTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        marginBottom: 5,
-    },
-    attachmentContainer: {
-        position: 'relative',
-        marginRight: 10,
-    },
-    attachmentImage: {
-        width: 100,
-        height: 100,
-        borderRadius: 10,
-    },
-    attachmentText: {
-        width: 100,
-        height: 100,
-        borderRadius: 10,
-        backgroundColor: 'gray',
-        color: 'white',
+    distanceText : {
+        fontSize: 15,
         textAlign: 'center',
-        textAlignVertical: 'center',
-    },
-    deleteButton: {
-        position: 'absolute',
-        top: 5,
-        right: 5,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        borderRadius: 20,
-        padding: 5,
-    },
-    notesText: {
-        fontSize: 14,
-        color: 'gray',
-    },
-    map: {
-        width: '100%',
-        height: 200,
-        borderRadius: 10,
-    },
+        fontWeight: 'bold',
+        color: "#000",
+        marginTop: 5
+    }
 });
+export default PastTrips;

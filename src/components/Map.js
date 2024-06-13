@@ -6,7 +6,8 @@ import { useAttachments } from '../utils/useAttachmentsContext';
 
 const Map = ({ currentLocation, pathCoordinates, tracking }) => {
     // const {currentLocation} = useInterval
-    const {pictureCoords} = useAttachments();
+    const {pictureCoords, videCoords } = useAttachments();
+    console.log("video coords", videCoords);
 
     return (
         <View style={{ flex: 1, marginVertical: 5 }}>
@@ -27,12 +28,24 @@ const Map = ({ currentLocation, pathCoordinates, tracking }) => {
                         }}
                         pinColor='red'
                     />
-                    {/* {pictureCoords === undefined ? null :
+                    {pictureCoords.latitude == null || pictureCoords.longitude == null ? null :
                         <Marker
-                            coordinate={pictureCoords}
+                            coordinate={{
+                                latitude: pictureCoords.latitude,
+                                longitude: pictureCoords.longitude
+                            }}
                             pinColor='indigo'
                         />
-                    } */}
+                    }
+                    {!videCoords.latitude || !videCoords.longitude ? null :
+                        <Marker
+                            coordinate={{
+                                latitude: videCoords.latitude,
+                                longitude: videCoords.longitude
+                            }}
+                            pinColor='green'
+                        />
+                    }
                     <Polyline
                         coordinates={pathCoordinates}
                         strokeColor="red" // border color

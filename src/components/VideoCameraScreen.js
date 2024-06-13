@@ -1,12 +1,11 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { View, TouchableOpacity, Text, Image, StyleSheet, ToastAndroid } from 'react-native';
-import { Camera, useCameraDevice, useCameraDevices } from 'react-native-vision-camera';
+import { View, TouchableOpacity, Text, Image, StyleSheet, ToastAndroid, ActivityIndicator } from 'react-native';
+import { Camera, useCameraDevice } from 'react-native-vision-camera';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 import Video from 'react-native-video';
 import { Button, useTheme } from 'react-native-paper';
 import { useAttachments } from '../utils/useAttachmentsContext';
-import { FFmpegKit } from 'ffmpeg-kit-react-native';
 import RNFS from 'react-native-fs';
 
 const VideoCameraScreen = ({ route, navigation }) => {
@@ -28,14 +27,14 @@ const VideoCameraScreen = ({ route, navigation }) => {
             'telephoto-camera'
         ]
     })
-    const {traceid, tripId} = route.params;
+    const {traceid, tripId, postTraces} = route.params;
     const [mediaUri, setMediaUri] = useState(null);
     const [isRecording, setIsRecording] = useState(false);
     const [cameraPermission, setCameraPermission] = useState(false);
     const [microphonePermission, setMicrophonePermission] = useState(false);
     const [flashEnable, setFlashEnable] = useState('off');
     const [frontCamera, setFrontCamera] = useState(false);
-    const { createAttachment, setMediaType } = useAttachments();
+    const { createAttachment, setMediaType, setVideoCoords, loadingAttachments } = useAttachments();
     const destinationDir = Platform.OS === 'ios' ? RNFS.DocumentDirectoryPath : RNFS.ExternalDirectoryPath;
     const destinationPath = `${destinationDir}/your_video_filename.mp4`;
 
@@ -56,34 +55,6 @@ const VideoCameraScreen = ({ route, navigation }) => {
             </View>
         );
     }
-
-
-    const compressVideo = async (videoUri) => {
-        const outputUri = videoUri.replace('.mov', '_compressed.mp4'); // Change file extension for output
-    
-        // FFmpeg command to compress the video
-        const command = `-i ${videoUri} -vcodec h264 -b:v 1000k -acodec aac ${outputUri}`;
-    
-        return new Promise((resolve, reject) => {
-            FFmpegKit.execute(command).then(session => {
-                session.getReturnCode().then(returnCode => {
-                    if (returnCode.isValueSuccess()) {
-                        console.log('Compression successful, output file:', outputUri);
-                        resolve(outputUri);
-                    } else {
-                        console.error('Compression failed:', returnCode);
-                        reject('Compression failed');
-                    }
-                }).catch(error => {
-                    console.error('Error getting return code:', error);
-                    reject(error);
-                });
-            }).catch(error => {
-                console.error('Error during compression:', error);
-                reject(error);
-            });
-        });
-    };
 
     const getFileSize = async (uri) => {
         try {
@@ -144,6 +115,10 @@ const VideoCameraScreen = ({ route, navigation }) => {
                 if (mediaUri) {
                     await createAttachment(traceid, mediaUri);
                     navigation.navigate('Tracking', { tripId: tripId });
+                    setVideoCoords({
+                        latitude : postTraces?.lat,
+                        longitude : postTraces?.lng
+                    })
                 }
             } catch (error) {
                 console.error('Upload failed:', error);
@@ -236,6 +211,11 @@ const VideoCameraScreen = ({ route, navigation }) => {
                         </View>
                     </View>
                 </>)}
+            {loadingAttachments &&
+                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', position: 'absolute', height: "100%", width: "100%", marginLeft: 10, marginTop: 10 }}>
+                    <ActivityIndicator size={'large'} />
+                </View>
+            }
         </View>
     );
 };

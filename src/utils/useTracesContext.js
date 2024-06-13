@@ -29,7 +29,7 @@ export const TracesProvider = ({ children }) => {
         setLoading(true);
         try {
             const data = await fetchApi(`/traces?tripId=${tripId}`, 'GET');
-            // setTraces(data.items);
+            setTraces(data.items);
             setError(null);
             return data;
         } catch (err) {
@@ -43,7 +43,7 @@ export const TracesProvider = ({ children }) => {
     const deleteTraces = async (traceId) => {
         setLoading(true);
         try {
-            const data = await fetchApi(`/traces/${traceId}`, 'DELETE');
+            const data = await fetchApi(`/traces?tripId=${traceId}`, 'DELETE');
             console.log(" Traces Deleted ", data);
             setError(null);
         } catch (err) {

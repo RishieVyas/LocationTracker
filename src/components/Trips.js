@@ -6,6 +6,7 @@ import { useTrips } from '../utils/useTripsContext';
 import { userDetails } from '../utils/userDetailsContext';
 import DeviceInfo from 'react-native-device-info';
 import { useIsFocused } from '@react-navigation/native';
+import { useAttachments } from '../utils/useAttachmentsContext';
 
 const Trips = ({navigation}) => {
 
@@ -21,6 +22,8 @@ const Trips = ({navigation}) => {
 
     const { firstName, lastName, mobileNumber, vehicle, batteryCharging } = userDetails();
     const deviceId = DeviceInfo.getDeviceId();
+    const {setPictureCoords, setVideoCoords } = useAttachments();
+    const [newTripDisable, setNewTripDisable] = useState(false);
 
     const {
         fetchTrips, 
@@ -55,6 +58,14 @@ const Trips = ({navigation}) => {
             setTripId(res?.id)
             navigation.navigate('Tracking', {tripId : res?.id});
         }
+        setPictureCoords({
+            latitude : null,
+            longitude : null
+        })
+        setVideoCoords({
+            latitude : null,
+            longitude : null
+        })
         console.log('Start New Trip');
     };
 
@@ -63,7 +74,7 @@ const Trips = ({navigation}) => {
             if(status == "ONGOING"){
                 navigation.navigate('Tracking', {tripId : id});
             } else {
-                navigation.navigate('PastTrips')
+                navigation.navigate('PastTrips', {tripId : id})
             }
             console.log('Open Trip:', id);
         } else {

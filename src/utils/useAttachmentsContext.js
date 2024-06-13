@@ -18,6 +18,10 @@ export const AttachmentsProvider = ({ children }) => {
         latitude: null,
         longitude: null
     })
+    const [videCoords, setVideoCoords] = useState({
+        latitude: null,
+        longitude: null
+    })
     
     const fetchAttachmentAPI = async (endpoint, method, body) => {
 
@@ -121,7 +125,9 @@ export const AttachmentsProvider = ({ children }) => {
         getAttachmentById,
         getAttachments,
         setMediaType,
-        setPictureCoords
+        setPictureCoords,
+        videCoords, 
+        setVideoCoords
     }
 
     return <AttachmentsContext.Provider value={value}>{children}</AttachmentsContext.Provider>;
