@@ -79,4 +79,24 @@ const calculateAverageSpeed = (data) => {
     return totalSpeed / data.length; // Average speed
 };
 
-export { useValidatedInput, formatPhoneNumber, cleanPhoneNumber, formatTimestamp, formatTime, calculateTotalDistance, calculateAverageSpeed };
+const getCurrentDate = () => {
+    const date = new Date(); // gets the current date
+    const month = date.getMonth() + 1; // getMonth() returns month from 0-11 (Jan is 0)
+    const day = date.getDate(); // returns day of the month
+    const year = date.getFullYear(); // returns the year
+
+    // Format the date into MM/DD/YYYY
+    return `${month.toString().padStart(2, '0')}/${day.toString().padStart(2, '0')}/${year}`;
+};
+
+const formatTimer = (timer) => {
+    const getSeconds = `0${(timer % 60)}`.slice(-2);
+    const minutes = `${Math.floor(timer / 60)}`;
+    const getMinutes = `0${minutes % 60}`.slice(-2);
+    const getHours = `0${Math.floor(timer / 3600)}`.slice(-2);
+
+    return `${getHours} : ${getMinutes} : ${getSeconds}`;
+};
+
+
+export { useValidatedInput, formatPhoneNumber, cleanPhoneNumber, formatTimestamp, formatTime, calculateTotalDistance, calculateAverageSpeed, getCurrentDate, formatTimer };

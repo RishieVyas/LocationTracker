@@ -14,6 +14,7 @@ import { useInterval } from '../utils/timerContext';
 import Map from './Map';
 import MessageModal from './MessageModal';
 import { useComments } from '../utils/useCommentsContext';
+import { formatTimer, getCurrentDate } from '../utils/CommonFunctions';
 
 const sleep = (time) => new Promise((resolve) => setTimeout(() => resolve(), time));
 
@@ -78,16 +79,6 @@ const Tracking = ({ navigation, route }) => {
         })
     };
 
-    const getCurrentDate = () => {
-        const date = new Date(); // gets the current date
-        const month = date.getMonth() + 1; // getMonth() returns month from 0-11 (Jan is 0)
-        const day = date.getDate(); // returns day of the month
-        const year = date.getFullYear(); // returns the year
-
-        // Format the date into MM/DD/YYYY
-        return `${month.toString().padStart(2, '0')}/${day.toString().padStart(2, '0')}/${year}`;
-    };
-
     useEffect(() => {
         if (!tripId) {
             Alert.alert("Error", "Trip ID is not defined. Returning to Trips screen.");
@@ -105,15 +96,6 @@ const Tracking = ({ navigation, route }) => {
         } catch (error) {
             console.error("Error fetching battery level: ", error);
         }
-    };
-
-    const formatTime = (timer) => {
-        const getSeconds = `0${(timer % 60)}`.slice(-2);
-        const minutes = `${Math.floor(timer / 60)}`;
-        const getMinutes = `0${minutes % 60}`.slice(-2);
-        const getHours = `0${Math.floor(timer / 3600)}`.slice(-2);
-
-        return `${getHours} : ${getMinutes} : ${getSeconds}`;
     };
 
     const locationTrackingTask = async (taskDataArguments) => {
@@ -317,7 +299,7 @@ const Tracking = ({ navigation, route }) => {
                 </View>
                 {!mapView ?
                     <>
-                        <Text style={{ color: theme.colors.primary, fontSize: 25, fontWeight: 'bold', marginTop: 20 }}>{formatTime(timer)}</Text>
+                        <Text style={{ color: theme.colors.primary, fontSize: 25, fontWeight: 'bold', marginTop: 20 }}>{formatTimer(timer)}</Text>
                         <TouchableOpacity onPress={handleLocationTracking} style={{ marginVertical: 10 }} disabled={newTrip ? true : false} >
                             <Icon
                                 name={tracking ? "stop-circle" : "power-sharp"}
@@ -358,7 +340,7 @@ const Tracking = ({ navigation, route }) => {
                             :
                             <View style={{ justifyContent: 'center', alignItems: 'center' }}>
                                 <Text style={[styles.heading, { color: newTrip ? "#ef476f" : "#000" }]}>{newTrip ? " Go back to start a new trip " : "Tap to start location tracking"}</Text>
-                                <Text style={{ color: theme.colors.primary, marginTop: 10, fontSize: 15 }}>{newTrip ? `Your trip duration was ${formatTime(tripDuration)}` : null}</Text>
+                                <Text style={{ color: theme.colors.primary, marginTop: 10, fontSize: 15 }}>{newTrip ? `Your trip duration was ${formatTimer(tripDuration)}` : null}</Text>
                             </View>
                         }
                     </> : null}
