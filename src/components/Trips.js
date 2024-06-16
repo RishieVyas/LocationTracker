@@ -92,7 +92,7 @@ const Trips = ({navigation}) => {
             },
             {text: 'OK', onPress: () => {
                 deleteTrips(id)
-                fetchTrips(" ")
+                fetchTrips(deviceId)
             }},
           ]);
     };
