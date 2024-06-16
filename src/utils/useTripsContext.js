@@ -16,12 +16,16 @@ export const TripsProvider = ({ children }) => {
     const [tripId, setTripId] = useState("")
 
     const createTrips = async (payload) => {
+        setLoadingTrips(true)
         try {
-            return await fetchApi('/trips', 'POST', payload);
-            
+            const tripsres =  await fetchApi('/trips', 'POST', payload);
+            setTripId(tripsres.id)
+            return tripsres;
         } catch (err) {
             setErrorTrips(err.message);
             setNewTrip([]);
+        } finally {
+            setLoadingTrips(false)
         }
     };
 

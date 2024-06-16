@@ -1,3 +1,5 @@
+import DeviceInfo from 'react-native-device-info';
+
 const useValidatedInput = (initialValue) => {
     let nameRegex = /^[a-zA-Z\s\-']+$/;
     const cleanedValue = initialValue.replace(/^\s+|\s+$/g, '').replace(/\s\s+/g, ' ');
@@ -98,5 +100,28 @@ const formatTimer = (timer) => {
     return `${getHours} : ${getMinutes} : ${getSeconds}`;
 };
 
+const fetchBatteryLevel = async () => {
+    try {
+        const level = await DeviceInfo.getBatteryLevel()
+        const batterypercentage = (level * 100).toFixed(0);
+        console.log('Battery % :', batterypercentage);
+        return parseInt(batterypercentage);
+        // Returns a number between 0 and 1
+    } catch (error) {
+        console.error("Error fetching battery level: ", error);
+    }
+};
 
-export { useValidatedInput, formatPhoneNumber, cleanPhoneNumber, formatTimestamp, formatTime, calculateTotalDistance, calculateAverageSpeed, getCurrentDate, formatTimer };
+
+export { 
+    useValidatedInput, 
+    formatPhoneNumber, 
+    cleanPhoneNumber, 
+    formatTimestamp, 
+    formatTime, 
+    calculateTotalDistance, 
+    calculateAverageSpeed, 
+    getCurrentDate, 
+    formatTimer,
+    fetchBatteryLevel  
+};

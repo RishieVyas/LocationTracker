@@ -40,7 +40,7 @@ const Trips = ({navigation}) => {
 
     useEffect(() => {
         if (isFocused) {
-            console.log("fetch trips called");
+            console.log("fetch trips called", deviceId);
             fetchTrips(deviceId);
         }
     }, [isFocused, deviceId])

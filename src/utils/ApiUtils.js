@@ -16,6 +16,7 @@ export const fetchApi = async (endpoint, method, body) => {
     };
 
     try {
+        console.log("config for fetch", config);
         const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         return response.json();
