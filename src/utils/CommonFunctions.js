@@ -112,6 +112,24 @@ const fetchBatteryLevel = async () => {
     }
 };
 
+const calculateDuration = (date1, date2) => {
+    const startDate = new Date(date1);
+    const endDate = new Date(date2);
+
+    const durationInMilliseconds = endDate - startDate;
+
+    const millisecondsInSecond = 1000;
+    const millisecondsInMinute = millisecondsInSecond * 60;
+    const millisecondsInHour = millisecondsInMinute * 60;
+
+    const hours = `0${Math.floor(durationInMilliseconds / millisecondsInHour)}`.slice(-2);
+    const minutes = `0${Math.floor((durationInMilliseconds % millisecondsInHour) / millisecondsInMinute)}`.slice(-2);
+    const seconds = `0${Math.floor((durationInMilliseconds % millisecondsInMinute) / millisecondsInSecond)}`.slice(-2);
+    const milliseconds = `${durationInMilliseconds % millisecondsInSecond}`.slice(-2);
+
+    return `${hours}:${minutes}:${seconds}:${milliseconds}`;;
+};
+
 
 export { 
     useValidatedInput, 
@@ -123,5 +141,6 @@ export {
     calculateAverageSpeed, 
     getCurrentDate, 
     formatTimer,
-    fetchBatteryLevel  
+    fetchBatteryLevel,
+    calculateDuration
 };

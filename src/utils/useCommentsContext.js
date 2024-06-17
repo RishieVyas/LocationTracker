@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext } from 'react';
 import { fetchApi } from './ApiUtils'
+import { Alert } from 'react-native';
 
 const CommentContext = createContext();
 
@@ -14,11 +15,21 @@ export const CommentsProvider = ({ children }) => {
 
     const createComments = async (payload) => {
         console.log("create comment payload", payload);
+        setLoadingComments(true)
         try {
-            return await fetchApi('/comments', 'POST', payload);
-            
+            const createres = await fetchApi('/comments', 'POST', payload);
+
+            if(createres){
+               Alert.alert('Success', "Comment uploaded sccessfully");
+            }
+
+            console.log("comment response --------------- ", createres);
+            return createres;
         } catch (err) {
+            Alert.alert('Error', 'Something went wrong')
             setErrorComments(err.message);
+        } finally {
+            setLoadingComments(false)
         }
     };
 

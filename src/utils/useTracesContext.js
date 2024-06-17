@@ -46,7 +46,7 @@ export const TracesProvider = ({ children }) => {
     const fetchTraces = async (tripId) => {
         setLoading(true);
         try {
-            const data = await fetchApi(`/traces?tripId=${tripId}`, 'GET');
+            const data = await fetchApi(`/traces?tripId=${tripId}&include=comments&include=attachments`, 'GET');
             setTraces(data.items);
             setError(null);
             return data;

@@ -1,3 +1,5 @@
+import { ToastAndroid } from "react-native";
+
 const API_BASE_URL = "https://tracker.ritis.org/api/v1";
 const token = "g30rd4n15c00l!";
 
@@ -18,7 +20,9 @@ export const fetchApi = async (endpoint, method, body) => {
     try {
         console.log("config for fetch", config);
         const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
         return response.json();
     } catch (error) {
         console.error('There has been a problem with your fetch operation:', error);

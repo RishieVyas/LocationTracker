@@ -9,7 +9,7 @@ import { useInterval } from '../utils/timerContext';
 import Map from './Map';
 import MessageModal from './MessageModal';
 import { useComments } from '../utils/useCommentsContext';
-import { fetchBatteryLevel, formatTimer, getCurrentDate } from '../utils/CommonFunctions';
+import { formatTimer, getCurrentDate } from '../utils/CommonFunctions';
 
 const Tracking = ({ navigation, route }) => {
 
@@ -55,7 +55,6 @@ const Tracking = ({ navigation, route }) => {
             }
         };
         loadTrackingStatus();
-        fetchBatteryLevel();
     }, []);
 
 
