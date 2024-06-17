@@ -34,6 +34,11 @@ export const TripsProvider = ({ children }) => {
         // setLoadingTrips(true);
         try {
             const data = await fetchApi(`/trips?deviceId=${deviceId}`, 'GET');
+            const ongoingId = data.items.find(item => item.status === "ONGOING")
+            if (ongoingId){
+                console.log("ongoing id value--------------", ongoingId.id);
+                setTripId(ongoingId.id)
+            }
             setTrips(data);
             return trips;
 

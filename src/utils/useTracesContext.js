@@ -8,6 +8,7 @@ import { userDetails } from './userDetailsContext';
 import { useInterval } from './timerContext';
 import BackgroundService from 'react-native-background-actions';
 import { useTrips } from './useTripsContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const sleep = (time) => new Promise((resolve) => setTimeout(() => resolve(), time));
 
@@ -26,7 +27,7 @@ export const TracesProvider = ({ children }) => {
     const [pathCoordinates, setPathCoordinates] = useState([]);
     const { currentLocation, setCurrentLocation } = useInterval();
     const [traceid, setTraceid] = useState("");
-    const {tripId} = useTrips();
+    const {tripId, patchTrip} = useTrips();
 
     const createTraces = async (payload) => {
         // console.log("Traces Payload", payload);
@@ -179,6 +180,31 @@ export const TracesProvider = ({ children }) => {
         },
     };
 
+    const startBackGroundTracking = async (id) => {
+        try {
+            await BackgroundService.start(locationTrackingTask, options);
+            if (BackgroundService.isRunning()) {
+                await BackgroundService.updateNotification({ taskDesc: 'Tracking in Progress' });
+            }
+            await AsyncStorage.setItem('tracking', 'true'); // Save tracking state
+            // patchTrip(tripId,{ status: 'ONGOING' });
+            console.log('Background service started successfully');
+        } catch (error) {
+            console.error('Error starting the background service:', error);
+        }
+    };
+
+    const stopBackGroundTracking = async () => {
+        try {
+            await BackgroundService.stop();
+            await AsyncStorage.setItem('tracking', 'false'); // Save tracking state
+            patchTrip(tripId,{ status: 'COMPLETED' });
+            console.log('Background service stopped successfully');
+        } catch (error) {
+            console.error('Error stopping the background service:', error);
+        }
+    };
+
     const value = {
         traces,
         postTraces,
@@ -196,7 +222,9 @@ export const TracesProvider = ({ children }) => {
         currentLocation,
         pathCoordinates,
         locationTrackingTask,
-        sosActiveRef
+        sosActiveRef,
+        startBackGroundTracking,
+        stopBackGroundTracking
     };
 
     return <TracesContext.Provider value={value}>{children}</TracesContext.Provider>;

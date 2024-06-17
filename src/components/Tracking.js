@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, AppState, NativeEventEmitter, NativeModules, DeviceEventEmitter } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useTheme } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import BackgroundService from 'react-native-background-actions';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTraces } from '../utils/useTracesContext';
-import { useTrips } from '../utils/useTripsContext';
 import { useInterval } from '../utils/timerContext';
 import Map from './Map';
 import MessageModal from './MessageModal';
@@ -15,9 +13,8 @@ import { fetchBatteryLevel, formatTimer, getCurrentDate } from '../utils/CommonF
 
 const Tracking = ({ navigation, route }) => {
 
-    const { postTraces, sosActive, setsosActive, pathCoordinates, traceid, locationTrackingTask, options, sosActiveRef} = useTraces();
+    const { postTraces, sosActive, setsosActive, pathCoordinates, traceid, startBackGroundTracking, stopBackGroundTracking, sosActiveRef} = useTraces();
     const { tripDuration, isActive, setIsActive, timer, currentLocation } = useInterval();
-    const { patchTrip } = useTrips();
     const {createComments} = useComments();
     const theme = useTheme();
     const { tripId } = route.params;
@@ -47,31 +44,6 @@ const Tracking = ({ navigation, route }) => {
             navigation.navigate('Trips');
         }
     }, [tripId, navigation]);
-
-    const startBackGroundTracking = async () => {
-        try {
-            await BackgroundService.start(locationTrackingTask, options);
-            if (BackgroundService.isRunning()) {
-                await BackgroundService.updateNotification({ taskDesc: 'Tracking in Progress' });
-            }
-            await AsyncStorage.setItem('tracking', 'true'); // Save tracking state
-            // patchTrip(tripId,{ status: 'ONGOING' });
-            console.log('Background service started successfully');
-        } catch (error) {
-            console.error('Error starting the background service:', error);
-        }
-    };
-
-    const stopBackGroundTracking = async () => {
-        try {
-            await BackgroundService.stop();
-            await AsyncStorage.setItem('tracking', 'false'); // Save tracking state
-            patchTrip(tripId,{ status: 'COMPLETED' });
-            console.log('Background service stopped successfully');
-        } catch (error) {
-            console.error('Error stopping the background service:', error);
-        }
-    };
 
     useEffect(() => {
         const loadTrackingStatus = async () => {
