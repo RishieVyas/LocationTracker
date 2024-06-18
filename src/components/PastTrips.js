@@ -11,29 +11,53 @@ const PastTrips = ({ route, navigation }) => {
     const { tripId } = route.params;
     const { fetchTraces } = useTraces();
     const [traceTimeStamp, setTraceTimeStamp] = useState([]);
-    const [traceCoords, setTraceCoords] = useState([])
-    const [tracesSpeed, setTracesSpeed] = useState([])
-    const [tracesArr, setTracesArr] = useState([])
-    const [attachmentArr, setAttachmentArr] = useState([])
-    const [commentsArr, setCommentsArr] = useState([])
+    const [traceCoords, setTraceCoords] = useState([]);
+    const [tracesSpeed, setTracesSpeed] = useState([]);
+    const [tracesArr, setTracesArr] = useState([]);
+    const [attachmentArr, setAttachmentArr] = useState([]);
+    const [commentsArr, setCommentsArr] = useState([]);
     const theme = useTheme();
+    const [imageData, setImageData] = useState(null);
+
+  useEffect(() => {
+    const fetchImage = async () => {
+      try {
+        const imageUrl = 'http://tracker.ritis.org/uploads/b41150f38a9c4e1107d2642688dcc4a1';
+        const authToken = 'g30rd4n15c00l!';
+
+        const response = await fetch(imageUrl, {
+        method: 'GET',
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        });
+
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        console.log(" blob value --->", blob);
+        setImageData(url)
+      } catch (error) {
+        console.error('Error fetching image:', error);
+      }
+    };
+
+    fetchImage();
+  }, []);
 
     useEffect(() => {
         const getTraces = async () => {
             const traceRes = await fetchTraces(tripId);
-            const extractedAttachments = []
-            const extractedComments = []
+            const extractedAttachments = [];
+            const extractedComments = [];
             if (traceRes) {
-                traceRes.items.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
-                setTraceTimeStamp(traceRes.items.map((item) => item.timestamp))
-                setTraceCoords(traceRes.items.map((item) =>
-                ({
+                traceRes.items.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+                setTraceTimeStamp(traceRes.items.map((item) => item.timestamp));
+                setTraceCoords(traceRes.items.map((item) => ({
                     latitude: item.lat,
                     longitude: item.lng
-                })
-                ))
-                setTracesSpeed(traceRes.items.map((item) => item.speed))
-                setTracesArr(traceRes.items)
+                })));
+                setTracesSpeed(traceRes.items.map((item) => item.speed));
+                setTracesArr(traceRes.items);
                 traceRes.items.forEach(item => {
                     if (item?.attachments?.length > 0) {
                         item.attachments.forEach(attachments => {
@@ -53,96 +77,74 @@ const PastTrips = ({ route, navigation }) => {
             console.log(" extracted comment array", extractedComments);
         }
         getTraces();
-    }, [])
+    }, []);
 
-    const renderAttachments = (item) => {
-        console.log("image item", item);
+    const renderAttachments = ({ item }) => {
+        console.log("item----->", imageData);
         return (
-            <Image source={{ uri: 'https://reactnative.dev/img/tiny_logo.png' }} style={styles.attachmentCard} />
+            <View style={{flex:1}}>
+                {imageData && (
+                <Image source={{ uri: `data:image/png;base64,${imageData}.png` }}  style={styles.attachmentCard} />
+            )}
+            </View>
         )
+        
     }
 
     return (
-        <View style={styles.container} >
+        <View style={styles.container}>
             <TouchableOpacity onPress={() => navigation.navigate('Trips')} style={styles.headerContainer}>
                 <Icon name="arrow-back-sharp" size={30} color={theme.colors.primary} />
                 <Text style={styles.headerText}>Trip Details</Text>
             </TouchableOpacity>
-            <Text style={styles.tripinfoheader}>Trip Info:</Text>
-            <View style={styles.dateTimeView}>
-                <Text style={styles.dateText}>
-                    Trip Date : {formatTimestamp(traceTimeStamp[0])}{`\n\n`}Avg Speed : {calculateAverageSpeed(tracesSpeed).toFixed(2)} m/sec
-                </Text>
-                <Text style={styles.timeText}>
-                    Start Time : {formatTime(traceTimeStamp[0])}{`\n\n`}End Time : {formatTime(traceTimeStamp[traceTimeStamp.length - 1])}
-                </Text>
+            <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Trip Info:</Text>
+                <Text style={styles.infoText}><Icon color={theme.colors.primary} size={15} name="calendar" />  Trip Date: {formatTimestamp(traceTimeStamp[0])}</Text>
+                <Text style={styles.infoText}><Icon color={theme.colors.primary} size={15} name="time" />  Start Time: {formatTime(traceTimeStamp[0])}</Text>
+                <Text style={styles.infoText}><Icon color={theme.colors.primary} size={15} name="time" />  End Time: {formatTime(traceTimeStamp[traceTimeStamp.length - 1])}</Text>
+                <Text style={styles.infoText}><Icon color={theme.colors.primary} size={15} name="speedometer" />  Avg Speed: {calculateAverageSpeed(tracesSpeed).toFixed(2)} m/sec</Text>
+                <Text style={styles.infoText}><Icon color={theme.colors.primary} size={15} name="navigate" />  Distance: {calculateTotalDistance(tracesArr).toFixed(2)} m</Text>
+                <Text style={styles.infoText}><Icon color={theme.colors.primary} size={15} name="hourglass" />  Duration: {calculateDuration(traceTimeStamp[0], traceTimeStamp[traceTimeStamp.length - 1])}</Text>
             </View>
-            <View style={styles.flexRow}>
-                <Text style={styles.distanceText} >Distance : {calculateTotalDistance(tracesArr).toFixed(2)} m</Text>
-                <Text style={styles.durationText} >Duration : {calculateDuration(traceTimeStamp[0], traceTimeStamp[traceTimeStamp.length - 1])}</Text>
-            </View>
-            {attachmentArr?.length > 0 ?
-                <View>
-                    <Text style={styles.attachmentHeader}>Attachments:</Text>
+            {attachmentArr.length > 0 && (
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Attachments:</Text>
                     <FlatList
                         data={attachmentArr}
-                        style={{ margin: 5 }}
-                        renderItem={(item) => renderAttachments(item.item)}
-                        horizontal={true}
+                        renderItem={renderAttachments}
+                        horizontal
+                        keyExtractor={(item, index) => index.toString()}
+                        style={styles.attachmentsList}
                     />
                 </View>
-                : null
-            }
-            {commentsArr?.length > 0 ?
-                <View style={{ padding: 10 }} >
-                    {console.log("comment array length", commentsArr.length)}
-                    <Text style={styles.commentsHeader} >Comments:</Text>
-                    {commentsArr.map((item) => {
-                        console.log("comment array item ----->", item);
-                        return (
-                            <Text style={styles.commentContent}>
-                                {item}
-                            </Text>
-                        )
-                    })}
+            )}
+            {commentsArr.length > 0 && (
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Comments:</Text>
+                    {commentsArr.map((item, index) => (
+                        <Text key={index} style={styles.commentContent}>
+                            {item}
+                        </Text>
+                    ))}
                 </View>
-                : null}
-            {traceCoords.length > 0 ?
-                <>
-                    <MapView
-                        style={styles.map}
-                        initialRegion={{
-                            latitude: traceCoords[0].latitude,
-                            longitude: traceCoords[0].longitude,
-                            latitudeDelta: 0.01,
-                            longitudeDelta: 0.01,
-                        }}
-                    >
-                        <Polyline
-                            coordinates={traceCoords}
-                            strokeColor="red"
-                            strokeWidth={6}
-                        />
-                        <Marker
-                            coordinate={
-                                {
-                                    latitude: traceCoords[0].latitude,
-                                    longitude: traceCoords[0].longitude
-                                }
-                            }
-                            pinColor='purple'
-                        />
-                        <Marker
-                            coordinate={
-                                {
-                                    latitude: traceCoords[traceCoords.length - 1].latitude,
-                                    longitude: traceCoords[traceCoords.length - 1].longitude
-                                }
-                            }
-                            pinColor='red'
-                        />
-                    </MapView>
-                </> : <ActivityIndicator size={'large'} />}
+            )}
+            {traceCoords.length > 0 ? (
+                <MapView
+                    style={styles.map}
+                    initialRegion={{
+                        latitude: traceCoords[0].latitude,
+                        longitude: traceCoords[0].longitude,
+                        latitudeDelta: 0.01,
+                        longitudeDelta: 0.01,
+                    }}
+                >
+                    <Polyline coordinates={traceCoords} strokeColor="red" strokeWidth={6} />
+                    <Marker coordinate={traceCoords[0]} pinColor="purple" />
+                    <Marker coordinate={traceCoords[traceCoords.length - 1]} pinColor="red" />
+                </MapView>
+            ) : (
+                <ActivityIndicator size="large" />
+            )}
         </View>
     );
 };
@@ -150,84 +152,62 @@ const PastTrips = ({ route, navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#FFF"
-    },
-    dateTimeView: {
-        flexDirection: 'row',
-        margin: 10
-    },
-    dateText: {
-        fontSize: 15,
-        color: "#000",
-        textAlign: 'left'
-    },
-    timeText: {
-        fontSize: 15,
-        color: "#000",
-        flex: 1,
-        textAlign: 'right'
-    },
-    map: {
-        width: "95%",
-        flex: 1,
-        margin: 10,
-        marginRight: 30,
-        borderRadius: 20
-    },
-    distanceText: {
-        fontSize: 15,
-        textAlign: 'left',
-        color: "#000",
-        margin: 10,
-        flex: 1
-    },
-    durationText: {
-        fontSize: 15,
-        textAlign: 'right',
-        color: "#000",
-        margin: 10
-    },
-    attachmentCard: {
-        borderRadius: 10,
-        borderWidth: 1,
-        borderColor: 'lightgrey',
-        width: 120,
-        height: 130,
-        margin: 10
-    },
-    commentContent: {
-        fontSize: 15,
-        color: 'black'
+        padding: 16,
+        backgroundColor: '#fff',
     },
     headerContainer: {
-        margin: 10,
-        flexDirection: 'row'
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 16,
     },
     headerText: {
-        color: "black",
-        fontSize: 22,
-        marginTop: 2,
-        fontWeight: '300',
-        marginLeft: 10
+        fontSize: 24,
+        fontWeight: '400',
+        marginLeft: 10,
+        color: "#333333"
     },
-    flexRow: {
-        flexDirection: 'row'
+    section: {
+        marginBottom: 16,
+        padding: 16,
+        backgroundColor: '#f8f8f8',
+        borderRadius: 8,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8
     },
-    attachmentHeader: {
-        fontSize: 15,
+    sectionTitle: {
+        fontSize: 18,
         fontWeight: 'bold',
-        color: 'black',
-        margin: 10
+        marginBottom: 8,
+        color: "#555555"
     },
-    commentsHeader: {
-        fontWeight: 'bold',
-        color: "black"
+    infoText: {
+        fontSize: 16,
+        marginBottom: 4,
+        color: "#777777"
     },
-    tripinfoheader: {
-        fontSize: 15,
-        fontWeight: 'bold',
-        color: 'black',
-        marginLeft : 10
-    }
+    attachmentsList: {
+        marginTop: 8,
+    },
+    attachmentCard: {
+        width: 150,
+        height: 200,
+        marginRight: 8,
+        borderRadius: 8,
+        borderColor: 'lightgrey',
+        borderWidth: 1
+    },
+    commentContent: {
+        fontSize: 16,
+        marginBottom: 8,
+        color: "#000"
+    },
+    map: {
+        width: '100%',
+        flex : 1,
+        borderRadius: 8,
+    },
 });
+
 export default PastTrips;
