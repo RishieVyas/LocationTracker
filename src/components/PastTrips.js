@@ -33,9 +33,8 @@ const PastTrips = ({ route, navigation }) => {
         });
 
         const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
-        console.log(" blob value --->", blob);
-        setImageData(url)
+        const blobId = blob.data.blobId
+        setImageData(blobId)
       } catch (error) {
         console.error('Error fetching image:', error);
       }
@@ -84,7 +83,7 @@ const PastTrips = ({ route, navigation }) => {
         return (
             <View style={{flex:1}}>
                 {imageData && (
-                <Image source={{ uri: `data:image/png;base64,${imageData}.png` }}  style={styles.attachmentCard} />
+                <Image source={{ uri: `data:image/png;base64,${imageData}` }}  style={styles.attachmentCard} />
             )}
             </View>
         )
