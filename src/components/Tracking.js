@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, DeviceEventEmitter, NativeModules } from 'react-native';
 import { useTheme } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -10,6 +10,8 @@ import Map from './Map';
 import MessageModal from './MessageModal';
 import { useComments } from '../utils/useCommentsContext';
 import { formatTimer, getCurrentDate } from '../utils/CommonFunctions';
+
+const { LocationModule } = NativeModules;
 
 const Tracking = ({ navigation, route }) => {
 
@@ -26,6 +28,8 @@ const Tracking = ({ navigation, route }) => {
     const showModal = () => {
         setModalVisible(true);
     };
+
+    console.log("Native modules----", NativeModules);
 
     const hideModal = () => {
         setModalVisible(false);
@@ -51,23 +55,41 @@ const Tracking = ({ navigation, route }) => {
             if (tracking === 'true') {
                 setTracking(true);
                 setIsActive(true);
-                startBackGroundTracking();
+                // startBackGroundTracking();
             }
         };
         loadTrackingStatus();
     }, []);
+
+    useEffect(() => {
+        if (tracking) {
+            // Start tracking
+            console.log("location tracking useEffet called");
+            const subscription = DeviceEventEmitter.addListener('result', message => {
+                console.log("RN Location", message.type);
+            });
+
+            // Cleanup function to stop tracking
+            return () => {
+                subscription.remove();
+            };
+        }
+    }, [tracking]);
 
 
     const handleLocationTracking = () => {
         setTracking(!tracking);
         if (!tracking) {
             console.log('Location Tracking Started');
-            startBackGroundTracking();
+            // startBackGroundTracking();
+            LocationModule.startLocationTracking().then((result) => {console.log("start tracking-----", result);});
+            
 
         } else {
             console.log('Location Tracking Stopped');
-            stopBackGroundTracking();
-            setNewTrip(true)
+            LocationModule.stopLocationTracking().then((result) => {console.log("stop tracking-----", result);});
+            // stopBackGroundTracking();
+            // setNewTrip(true)
         }
         setIsActive(!isActive);
     }

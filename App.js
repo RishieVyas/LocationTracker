@@ -5,7 +5,7 @@ import Navigation from './src/utils/Navigation';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { DefaultTheme } from 'react-native-paper';
 import { IntervalProvider } from './src/utils/timerContext';
-import { PermissionsAndroid, Platform } from 'react-native';
+import { PermissionsAndroid, Platform, NativeModules } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 import { TripsProvider } from './src/utils/useTripsContext';
 import { TracesProvider } from './src/utils/useTracesContext';
@@ -16,6 +16,7 @@ import { CommentsProvider } from './src/utils/useCommentsContext';
 const App = () => {
 
   const [currentLocation, setCurrentLocation] = useState({ latitude: null, longitude: null });
+  console.log("Native Modules app.js", NativeModules);
 
   const theme = {
     ...DefaultTheme,
@@ -83,41 +84,41 @@ const App = () => {
         }
       );
 
-      if (grantedForeground === PermissionsAndroid.RESULTS.GRANTED) {
-        console.log('Foreground location permission granted');
-        getCurrentLocation();
-        // Now request background location
-        const grantedBackground = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION,
-          {
-            title: "Background Location Permission",
-            message: "Please select 'Allow all the time' for app functionality. \nLocation tracking is only active during trips.",
-            buttonNeutral: "Ask Me Later",
-            buttonNegative: "Cancel",
-            buttonPositive: "OK"
-          }
-        );
+      // if (grantedForeground === PermissionsAndroid.RESULTS.GRANTED) {
+      //   console.log('Foreground location permission granted');
+      //   getCurrentLocation();
+      //   // Now request background location
+      //   const grantedBackground = await PermissionsAndroid.request(
+      //     PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION,
+      //     {
+      //       title: "Background Location Permission",
+      //       message: "Please select 'Allow all the time' for app functionality. \nLocation tracking is only active during trips.",
+      //       buttonNeutral: "Ask Me Later",
+      //       buttonNegative: "Cancel",
+      //       buttonPositive: "OK"
+      //     }
+      //   );
 
-        if (grantedBackground === PermissionsAndroid.RESULTS.GRANTED) {
-          console.log('Background location permission granted');
-        } else {
-          console.log('Background location permission denied');
-        }
-      } else {
-        console.log('Foreground location permission denied');
-      }
+      //   if (grantedBackground === PermissionsAndroid.RESULTS.GRANTED) {
+      //     console.log('Background location permission granted');
+      //   } else {
+      //     console.log('Background location permission denied');
+      //   }
+      // } else {
+      //   console.log('Foreground location permission denied');
+      // }
     } catch (err) {
       console.warn(err);
     }
   };
 
-  useEffect(() => {
-    async function requestPermissions() {
-      await requestNotificationPermission();
-      await requestLocationPermission();
-    }
-    requestPermissions();
-  }, []);
+  // useEffect(() => {
+  //   async function requestPermissions() {
+  //     // await requestNotificationPermission();
+  //     // await requestLocationPermission();
+  //   }
+  //   requestPermissions();
+  // }, []);
 
   return (
     <PaperProvider theme={theme}>
