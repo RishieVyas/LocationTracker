@@ -137,17 +137,34 @@ class MainActivity : ReactActivity(), LocationCallback {
 
     
     
-    override fun onLocationUpdated(latitude: Double, longitude: Double) {
+    override fun onLocationUpdated(
+        latitude: Double,
+        longitude: Double,
+        altitude: Double?,
+        timestamp: Long,
+        speed: Float?,
+        heading: Float?
+    ) {
 
         runOnUiThread {
-            Toast.makeText(this, "Lat lng ${latitude} ${longitude}", Toast.LENGTH_SHORT).show()
-            val context = reactNativeHost.reactInstanceManager.currentReactContext              // sending location to reat native side
-            val params: WritableMap = Arguments.createMap()
-            params.putString("type", "$latitude $longitude")
-            context
-                ?.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-                ?.emit("result", params)
-                
+            Toast.makeText(this, "Lat ${latitude} lng ${longitude} altitude ${altitude} timestamp ${timestamp} speed ${speed} heading ${heading}", Toast.LENGTH_LONG).show()
+            val context = reactNativeHost.reactInstanceManager.currentReactContext
+            if (context != null) {// sending location to react native side
+                val params: WritableMap = Arguments.createMap().apply {
+                    putDouble("latitude", latitude)
+                    putDouble("longitude", longitude)
+                    putDouble("altitude", altitude ?: 0.0)
+                    putDouble("timestamp", timestamp.toDouble())
+                    putDouble("speed", speed?.toDouble() ?: 0.0)
+                    putDouble("heading", heading?.toDouble() ?: 0.0)
+                }
+                //params.putString("type", "$latitude $longitude")
+                context
+                    ?.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+                    ?.emit("result", params)
+            } else {
+                Log.w("MainActivity", "React context is not initiated yet.")
+            }
         }
     }
 }

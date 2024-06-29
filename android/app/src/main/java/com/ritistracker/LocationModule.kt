@@ -12,7 +12,7 @@ import com.facebook.react.modules.core.DeviceEventManagerModule
 class LocationModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
     override fun getName(): String {
-        return "LocationModule"
+        return "LocationModule";
     }
 
     @ReactMethod

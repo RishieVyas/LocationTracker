@@ -18,6 +18,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import com.google.android.gms.location.FusedLocationProviderClient
 
 
 class LocationService : Service() {
@@ -73,7 +74,11 @@ class LocationService : Service() {
             .onEach { location ->
                 val lat = location.latitude
                 val long = location.longitude
-                locationCallback?.onLocationUpdated(lat, long)
+                val altitude = location.altitude
+                val timestamp = location.time
+                val speed = location.speed
+                val heading = location.bearing
+                locationCallback?.onLocationUpdated(lat, long, altitude, timestamp, speed, heading)
                 val updatedNotification = notification.setContentText(
                     "Location: ($lat, $long)"
                 )
@@ -85,9 +90,11 @@ class LocationService : Service() {
     }
 
     private fun stop() {
+        serviceScope.cancel()
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
             stopForeground(STOP_FOREGROUND_REMOVE)
         } else {
+            @Suppress("DEPRECATION")
             stopForeground(true)
         }
         stopSelf()
@@ -96,6 +103,13 @@ class LocationService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         serviceScope.cancel()
+        stopSelf()
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            stopForeground(STOP_FOREGROUND_REMOVE)
+        } else {
+            @Suppress("DEPRECATION")
+            stopForeground(true)
+        }
     }
 
     companion object {

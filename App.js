@@ -112,13 +112,13 @@ const App = () => {
     }
   };
 
-  // useEffect(() => {
-  //   async function requestPermissions() {
-  //     // await requestNotificationPermission();
-  //     // await requestLocationPermission();
-  //   }
-  //   requestPermissions();
-  // }, []);
+  useEffect(() => {
+    async function requestPermissions() {
+      await requestNotificationPermission();
+      await requestLocationPermission();
+    }
+    // requestPermissions();
+  }, []);
 
   return (
     <PaperProvider theme={theme}>

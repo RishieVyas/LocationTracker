@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, DeviceEventEmitter, NativeModules } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, DeviceEventEmitter, NativeModules, PermissionsAndroid, Alert, Platform } from 'react-native';
 import { useTheme } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -10,8 +10,10 @@ import Map from './Map';
 import MessageModal from './MessageModal';
 import { useComments } from '../utils/useCommentsContext';
 import { formatTimer, getCurrentDate } from '../utils/CommonFunctions';
+import RTNMyLocation from 'rtn-my-location/js/NativeMyLocation';
+import { useTrips } from '../utils/useTripsContext';
 
-const { LocationModule } = NativeModules;
+const {LocationModule} = NativeModules;
 
 const Tracking = ({ navigation, route }) => {
 
@@ -19,17 +21,17 @@ const Tracking = ({ navigation, route }) => {
     const { tripDuration, isActive, setIsActive, timer, currentLocation } = useInterval();
     const {createComments} = useComments();
     const theme = useTheme();
+    const { patchTrip } = useTrips();
     const { tripId } = route.params;
     const [tracking, setTracking] = useState(false);
     const [mapView, setMapView] = useState(false);
     const [newTrip, setNewTrip] = useState(false)
     const [modalVisible, setModalVisible] = useState(false);
+    const [locationPermission, setLocationPermission] = useState("");
 
     const showModal = () => {
         setModalVisible(true);
     };
-
-    console.log("Native modules----", NativeModules);
 
     const hideModal = () => {
         setModalVisible(false);
@@ -61,37 +63,87 @@ const Tracking = ({ navigation, route }) => {
         loadTrackingStatus();
     }, []);
 
-    useEffect(() => {
-        if (tracking) {
-            // Start tracking
-            console.log("location tracking useEffet called");
-            const subscription = DeviceEventEmitter.addListener('result', message => {
-                console.log("RN Location", message.type);
-            });
+    // useEffect(() => {
+    //     let subscription;
+    //     if (!tracking) {
+    //         NativeModules.LocationModule.stopLocationTracking();
+    //         typeof subscription !== 'undefined' && subscription.remove();
+    //         return;
+    //     }
+    //     if(tracking) {
+    //         subscription = DeviceEventEmitter.addListener( NativeModules.LocationModule, (e) => {
+    //             console.log("Location Received", e);
+    //         });
+    //         NativeModules.LocationModule.startLocationTracking();
+    //     }
+    //     return () => {
+    //         NativeModules.LocationModule.stopLocationTracking();
+    //         typeof subscription !== 'undefined' && subscription.remove();
+    //     }
+    // }, [tracking]);
 
-            // Cleanup function to stop tracking
-            return () => {
-                subscription.remove();
-            };
+    const requestLocationPermission = async () => {
+        const grantedForeground = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+            {
+              title: "Location Permission",
+              message: "This app needs access to your location.",
+              buttonNeutral: "Ask Me Later",
+              buttonNegative: "Cancel",
+              buttonPositive: "OK"
+            }
+          );
+          return grantedForeground;
+    }
+
+    async function requestNotificationPermission() {
+        if (Platform.OS === 'android' && Platform.Version >= 33) {
+          const granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+            {
+              title: "Notification Permission",
+              message: "This app needs access to post notifications.",
+              buttonNeutral: "Ask Me Later",
+              buttonNegative: "Cancel",
+              buttonPositive: "OK"
+            }
+          );
+    
+          if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+            console.log("You can use notifications");
+          } else {
+            console.log("Notification permission denied");
+          }
         }
-    }, [tracking]);
+      }
 
 
-    const handleLocationTracking = () => {
-        setTracking(!tracking);
-        if (!tracking) {
-            console.log('Location Tracking Started');
-            // startBackGroundTracking();
-            LocationModule.startLocationTracking().then((result) => {console.log("start tracking-----", result);});
-            
-
-        } else {
-            console.log('Location Tracking Stopped');
-            LocationModule.stopLocationTracking().then((result) => {console.log("stop tracking-----", result);});
-            // stopBackGroundTracking();
-            // setNewTrip(true)
-        }
-        setIsActive(!isActive);
+    const handleLocationTracking = async() => {
+        await requestNotificationPermission();
+        await requestLocationPermission().then((result) => {
+            if (result === PermissionsAndroid.RESULTS.GRANTED) {
+                setTracking(!tracking);
+                console.log("Native Modules from Tracking", NativeModules);
+                // RTNMyLocation.getLocation();
+                if (!tracking) {
+                    console.log('Location Tracking Started');
+                    LocationModule.startLocationTracking();
+                    AsyncStorage.setItem('tracking', 'true');
+                    // startBackGroundTracking();
+                } else {
+                    console.log('Location Tracking Stopped');
+                    LocationModule.stopLocationTracking();
+                    AsyncStorage.setItem('tracking', 'false');
+                    patchTrip(tripId,{ status: 'COMPLETED' });
+                    // RTNMyLocation.stopLocationTracking().then((result) => {console.log("stop tracking-----", result);});
+                    // stopBackGroundTracking();
+                    // setNewTrip(true)
+                }
+                setIsActive(!isActive);
+            } else {
+                Alert.alert("Permission Denied", "Location permission denied. Please enable location permission to start tracking.");
+            }
+        })
     }
 
     const onCameraPress = () => {
