@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, NativeModules, DeviceEventEmitter, PermissionsAndroid } from 'react-native';
 import { useTheme } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -10,12 +10,16 @@ import Map from './Map';
 import MessageModal from './MessageModal';
 import { useComments } from '../utils/useCommentsContext';
 import { formatTimer, getCurrentDate } from '../utils/CommonFunctions';
+import { useTrips } from '../utils/useTripsContext';
+
+const {LocationManager} = NativeModules
 
 const Tracking = ({ navigation, route }) => {
 
     const { postTraces, sosActive, setsosActive, pathCoordinates, traceid, startBackGroundTracking, stopBackGroundTracking, sosActiveRef} = useTraces();
     const { tripDuration, isActive, setIsActive, timer, currentLocation } = useInterval();
     const {createComments} = useComments();
+    const {patchTrip} = useTrips();
     const theme = useTheme();
     const { tripId } = route.params;
     const [tracking, setTracking] = useState(false);
@@ -51,22 +55,61 @@ const Tracking = ({ navigation, route }) => {
             if (tracking === 'true') {
                 setTracking(true);
                 setIsActive(true);
-                startBackGroundTracking();
+                // startBackGroundTracking();
             }
         };
         loadTrackingStatus();
     }, []);
 
-
-    const handleLocationTracking = () => {
-        setTracking(!tracking);
+    useEffect(() => {
+        let subscription;
         if (!tracking) {
+          LocationManager.stopBackgroundLocation();
+          typeof subscription !== 'undefined' && subscription.remove();
+          return;
+        }
+    
+        if (tracking) {
+          subscription = DeviceEventEmitter.addListener(
+            NativeModules.LocationManager.JS_LOCATION_EVENT_NAME,
+            (e) => {
+              console.log('Received Location Event:', e);
+            }
+          );
+    
+          LocationManager.startBackgroundLocation();
+        }
+    
+        return () => {
+          LocationManager.stopBackgroundLocation();
+          typeof subscription !== 'undefined' && subscription.remove();
+        };
+    }, [tracking])
+
+    const handleLocationTracking = async () => {
+        let status = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+            {
+              title: "Location Permission",
+              message: "This app needs access to your location.",
+              buttonNeutral: "Ask Me Later",
+              buttonNegative: "Cancel",
+              buttonPositive: "OK"
+            }
+          );
+        setTracking(!tracking);
+        if (!tracking && status == "granted") {
             console.log('Location Tracking Started');
-            startBackGroundTracking();
+            // startBackGroundTracking();
+            LocationManager.startBackgroundLocation();
+            await AsyncStorage.setItem('tracking', 'true');
 
         } else {
             console.log('Location Tracking Stopped');
-            stopBackGroundTracking();
+            // stopBackGroundTracking();
+            LocationManager.stopBackgroundLocation();
+            await AsyncStorage.setItem('tracking', 'false');
+            patchTrip(tripId,{ status: 'COMPLETED' });
             setNewTrip(true)
         }
         setIsActive(!isActive);

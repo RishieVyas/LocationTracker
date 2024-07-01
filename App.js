@@ -87,22 +87,22 @@ const App = () => {
         console.log('Foreground location permission granted');
         getCurrentLocation();
         // Now request background location
-        const grantedBackground = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION,
-          {
-            title: "Background Location Permission",
-            message: "Please select 'Allow all the time' for app functionality. \nLocation tracking is only active during trips.",
-            buttonNeutral: "Ask Me Later",
-            buttonNegative: "Cancel",
-            buttonPositive: "OK"
-          }
-        );
+        // const grantedBackground = await PermissionsAndroid.request(
+        //   PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION,
+        //   {
+        //     title: "Background Location Permission",
+        //     message: "Please select 'Allow all the time' for app functionality. \nLocation tracking is only active during trips.",
+        //     buttonNeutral: "Ask Me Later",
+        //     buttonNegative: "Cancel",
+        //     buttonPositive: "OK"
+        //   }
+        // );
 
-        if (grantedBackground === PermissionsAndroid.RESULTS.GRANTED) {
-          console.log('Background location permission granted');
-        } else {
-          console.log('Background location permission denied');
-        }
+        // if (grantedBackground === PermissionsAndroid.RESULTS.GRANTED) {
+        //   console.log('Background location permission granted');
+        // } else {
+        //   console.log('Background location permission denied');
+        // }
       } else {
         console.log('Foreground location permission denied');
       }
@@ -116,7 +116,7 @@ const App = () => {
       await requestNotificationPermission();
       await requestLocationPermission();
     }
-    requestPermissions();
+    // requestPermissions();
   }, []);
 
   return (
